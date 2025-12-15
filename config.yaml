@@ -1,0 +1,46 @@
+#CONFIGURATION FILE
+#Where it defines all the parameters for the workflow
+## IMPORTANT- changing this file allows the pipeline to be reused for different proteins, taxa, or phylogenetic settings
+
+
+#Target protein - a list of the proteins names to be searched in NCBI Protein
+proteins:
+  - Dps1
+  - Dps2
+
+
+#Taxonomic scope
+taxon: Deinococcus
+#The species of special interest
+focus_species: Deinococcus radiodurans
+
+
+#Sequence filtering - Minimun and maximum allowed protein length
+min_length: 150
+max_length: 300
+
+cdhit_identity: 0.95 ##not sure yet
+
+
+#Alignment settings - L-INS-i is recommended for protein alignments, with conserved motifs and moderate divergence
+mafft:
+  method: linsi
+
+#Alignment trimming - automated1 automatically selects trimming parameters
+trimal:
+  mode: automated1
+
+
+#Phylogenetic inference
+iqtree:
+  bootstrap: 1000  #N.º of ultrafast bootstrap replicates
+  alrt: 1000  #SH-aLRT branch support replicates
+  threads: AUTO  #N.º of threads (AUTO lets IQ-TREE decide)
+
+
+#NCBI retrival parameters
+email: your.email@university.pt  #Email is required by NCBI Entrez policies
+retmax: 500  #Maximum number of sequences retrieved per query
+
+#UniProt retrival parameters
+uniprot_base_url: https://www.uniprot.org/uniprot/
