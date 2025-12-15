@@ -1,0 +1,5 @@
+name: trimal_env
+channels:
+  - bioconda
+dependencies:
+  - trimal=1.4.1

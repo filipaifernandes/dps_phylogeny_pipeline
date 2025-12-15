@@ -1,0 +1,5 @@
+name: amas_env
+channels:
+  - bioconda
+dependencies:
+  - amas=1.0
