@@ -2,7 +2,7 @@
 
 **Automated, reproducible workflow for the retrieval, curation, alignment, and phylogenetic analysis of Dps proteins in Deinococcus species.**
 
-This pipeline is designed to streamline bioinformatics analysis of **Dps1 and Dps2 proteins**, with a primary focus on *Deinococcus radiodurans*. Leveraging **Snakemake** for workflow management, **Conda** for environment reproducibility, and optional **Docker** for OS-level reproducibility, the pipeline integrates sequences from multiple sources, ensures high-quality data preprocessing, and performs robust phylogenetic inference.
+This pipeline is designed to streamline bioinformatics analysis of **Dps1 and Dps2 proteins of Deinococcus species**, with a primary focus on *Deinococcus radiodurans*. Leveraging **Snakemake** for workflow management, **Conda** for environment reproducibility, and optional **Docker** for OS-level reproducibility, the pipeline integrates sequences from multiple sources, ensures high-quality data preprocessing, and performs robust phylogenetic inference.
 
 ---
 
