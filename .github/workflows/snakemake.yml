@@ -7,20 +7,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      
-      # Setup conda
+
+      # Setup Miniconda
       - uses: conda-incubator/setup-miniconda@v3
         with:
           auto-update-conda: true
           python-version: 3.10
-          activate-environment: snakemake-env  # optional environment name
+          activate-base: true  # use the base environment
 
       # Install Snakemake
       - run: |
-          conda install -c conda-forge -c bioconda snakemake
+          conda config --set channel_priority strict
+          conda install -c conda-forge -c bioconda snakemake mamba
         shell: bash -l {0}
 
-      # Run Snakemake dry-run
+      # Run dry-run
       - run: |
           snakemake --use-conda --dry-run
-        shell: bash -l {0}   # important to load conda in this step
+        shell: bash -l {0}
