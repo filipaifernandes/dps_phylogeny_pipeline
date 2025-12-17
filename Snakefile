@@ -1,101 +1,110 @@
 configfile: "config.yaml"
-PROTEINS = config["proteins"]
 
+#Final target of the workflow
 rule all:
     input:
-        expand("data/trees/{protein}.treefile", protein=PROTEINS),
-        expand("results/{protein}_alignment_stats.txt", protein=PROTEINS),
-        expand("results/{protein}.lmap", protein=PROTEINS),
-        expand("results/{protein}_blast_hits.tsv", protein=PROTEINS),
-        expand("data/domains/{protein}.pfam.tbl", protein=PROTEINS)
+        "data/trees/dps.treefile"
 
-#Fetch NCBI sequences
+
+#### Fetch protein sequences from NCBI ####
 rule fetch_ncbi:
-    output: "data/raw/{protein}_ncbi.fasta"
-    conda: "envs/biopython.yaml"
-    params: taxon=config["taxon"], email=config["email"], retmax=config["retmax"]
-    shell: "python scripts/fetch_sequences_ncbi.py {wildcards.protein} {params.taxon} {params.email} {params.retmax} {output}"
+    output:
+        "data/raw/ncbi.fasta"
+    conda:
+        "envs/biopython.yaml"
+    shell:
+        """
+        python scripts/fetch_sequences_ncbi.py \
+            {config[gene]} \
+            {config[taxon]} \
+            {config[email]} \
+            {config[max_seqs]} \
+            {output}
+        """
 
-#Fetch UniProt sequences
+
+#### Fetch protein sequences from UniProt ####
 rule fetch_uniprot:
-    output: "data/raw/{protein}_uniprot.fasta"
-    conda: "envs/requests.yaml"
-    params: taxon=config["taxon"]
-    shell: "python scripts/fetch_sequences_uniprot.py {wildcards.protein} {params.taxon} {output}"
+    output:
+        "data/raw/uniprot.fasta"
+    conda:
+        "envs/requests.yaml"
+    shell:
+        """
+        python scripts/fetch_sequences_uniprot.py \
+            {config[gene]} \
+            {config[taxon]} \
+            {output}
+        """
 
-#Merge sequences from all databases
-rule merge_sequences:
-    input: 
-        ncbi="data/raw/{protein}_ncbi.fasta",
-        uniprot="data/raw/{protein}_uniprot.fasta"
-    output: "data/raw/{protein}_combined.fasta"
-    conda: "envs/biopython.yaml"
-    shell: "python scripts/merge_sequences.py {input.ncbi} {input.uniprot} {output}"
 
-#Clean merged sequences
-rule clean_sequences:
-    input: "data/raw/{protein}_combined.fasta"
-    output: "data/cleaned/{protein}.clean.fasta"
-    conda: "envs/biopython.yaml"
-    params: min_len=config["min_length"], max_len=config["max_length"]
-    shell: "python scripts/clean_sequences.py {input} {output} {params.min_len} {params.max_len}"
+#### Merge and clean sequences ####
+rule merge_clean:
+    input:
+        "data/raw/ncbi.fasta",
+        "data/raw/uniprot.fasta"
+    output:
+        "data/cleaned/cleaned.fasta"
+    conda:
+        "envs/biopython.yaml"
+    shell:
+        """
+        python scripts/merge_and_clean_fasta.py \
+            {input} \
+            {output}
+        """
 
-#Redundancy reduction
+
+#### Reduce redundancy - using CD-HIT
 rule cdhit:
-    input: "data/cleaned/{protein}.clean.fasta"
-    output: "data/cleaned/{protein}.nr.fasta"
-    conda: "envs/cdhit.yaml"
-    params: c=config["cdhit_identity"]
-    shell: "cd-hit -i {input} -o {output} -c {params.c}"
+    input:
+        "data/cleaned/cleaned.fasta"
+    output:
+        "data/cleaned/nonredundant.fasta"
+    conda:
+        "envs/cdhit.yaml"
+    shell:
+        """
+        cd-hit -i {input} -o {output} -c 0.95 -n 5
+        """
 
-#Domain validation
-rule hmmer_scan:
-    input: "data/cleaned/{protein}.nr.fasta"
-    output: "data/domains/{protein}.pfam.tbl"
-    conda: "envs/hmmer.yaml"
-    params: pfam="Pfam-A.hmm"
-    shell: "hmmscan --tblout {output} {params.pfam} {input}"
-
-#Alignment
+#### Multiple sequence alignment ####
 rule align:
-    input: "data/cleaned/{protein}.nr.fasta"
-    output: "data/aligned/{protein}.aln.fasta"
-    conda: "envs/mafft.yaml"
-    shell: "mafft --maxiterate 1000 --localpair {input} > {output}"
+    input:
+        "data/cleaned/nonredundant.fasta"
+    output:
+        "data/aligned/aligned.fasta"
+    conda:
+        "envs/mafft.yaml"
+    shell:
+        """
+        mafft --auto {input} > {output}
+        """
 
-#Alignment stats
-rule alignment_stats:
-    input: "data/aligned/{protein}.aln.fasta"
-    output: "results/{protein}_alignment_stats.txt"
-    conda: "envs/amas.yaml"
-    shell: "amas summary -f fasta -i {input} > {output}"
 
-#Trimming
+#### Alignment trimming - using TrimAl ####
 rule trim:
-    input: "data/aligned/{protein}.aln.fasta"
-    output: "data/trimmed/{protein}.trim.fasta"
-    conda: "envs/trimal.yaml"
-    shell: "trimal -in {input} -out {output} -automated1"
+    input:
+        "data/aligned/aligned.fasta"
+    output:
+        "data/aligned/trimmed.fasta"
+    conda:
+        "envs/trimal.yaml"
+    shell:
+        """
+        trimal -automated1 -in {input} -out {output}
+        """
 
-#Phylogenetic tree
+
+#### Phylogenetic inference - using IQ-TREE ####
 rule iqtree:
-    input: "data/trimmed/{protein}.trim.fasta"
-    output: "data/trees/{protein}.treefile"
-    conda: "envs/iqtree.yaml"
-    params: bb=config["iqtree"]["bootstrap"], alrt=config["iqtree"]["alrt"], nt=config["iqtree"]["threads"]
-    shell: "iqtree2 -s {input} -m MFP -bb {params.bb} -alrt {params.alrt} -nt {params.nt}"
-
-#Likelihood mapping
-rule likelihood_mapping:
-    input: "data/trimmed/{protein}.trim.fasta"
-    output: "results/{protein}.lmap"
-    conda: "envs/iqtree.yaml"
-    shell: "iqtree2 -s {input} -lmap 10000"
-
-#BLAST orthology check
-rule blast_orthology_check:
-    input: "data/cleaned/{protein}.nr.fasta"
-    output: "results/{protein}_blast_hits.tsv"
-    conda: "envs/blast.yaml"
-    params: db="blast_db/Dps_refs"
-    shell: "blastp -query {input} -db {params.db} -outfmt 6 -max_target_seqs 1 > {output}"
+    input:
+        "data/aligned/trimmed.fasta"
+    output:
+        "data/trees/dps.treefile"
+    conda:
+        "envs/iqtree.yaml"
+    shell:
+        """
+        iqtree2 -s {input} -m MFP -bb 1000 -alrt 1000
+        """
