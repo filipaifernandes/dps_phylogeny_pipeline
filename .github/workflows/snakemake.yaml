@@ -7,6 +7,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: conda-incubator/setup-miniconda@v2
-      - run: conda install -c conda-forge -c bioconda snakemake
+
+      # Setup Miniconda
+      - uses: conda-incubator/setup-miniconda@v3
+        with:
+          auto-update-conda: true
+          python-version: 3.10
+          auto-activate-base: true
+
+      # Install Snakemake and mamba
+      - run: |
+          conda config --set channel_priority strict
+          conda install -c conda-forge -c bioconda snakemake mamba
+        shell: bash -l {0}
+
+      # Run dry-run
       - run: snakemake --use-conda --dry-run
+        shell: bash -l {0}
