@@ -1,0 +1,11 @@
+Building DAG of jobs...
+Creating conda environment envs/iqtree.yaml...
+Downloading and installing remote packages.
+CreateCondaEnvironmentException:
+Could not create conda environment from /home/pipas/dps_phylogeny_pipeline/envs/iqtree.yaml:
+Command:
+mamba env create --quiet --file "/home/pipas/dps_phylogeny_pipeline/.snakemake/conda/d5517712f905f7b4789548d380126d9f_.yaml" --prefix "/home/pipas/dps_phylogeny_pipeline/.snakemake/conda/d5517712f905f7b4789548d380126d9f_"
+Output:
+error    libmamba Non-conda folder exists at prefix - aborting.
+critical libmamba Non-conda folder exists at prefix - aborting.
+

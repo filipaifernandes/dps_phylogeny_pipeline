@@ -1,0 +1,12 @@
+Building DAG of jobs...
+Your conda installation is not configured to use strict channel priorities. This is however crucial for having robust and correct environments (for details, see https://conda-forge.org/docs/user/tipsandtricks.html). Please consider to configure strict priorities by executing 'conda config --set channel_priority strict'.
+Creating conda environment envs/biopython.yaml...
+Downloading and installing remote packages.
+CreateCondaEnvironmentException:
+Could not create conda environment from /home/pipas/dps_phylogeny_pipeline/envs/biopython.yaml:
+Command:
+mamba env create --quiet --file "/home/pipas/dps_phylogeny_pipeline/.snakemake/conda/f41a9317508635ecacf663efc05e65e8_.yaml" --prefix "/home/pipas/dps_phylogeny_pipeline/.snakemake/conda/f41a9317508635ecacf663efc05e65e8_"
+Output:
+error    libmamba Non-conda folder exists at prefix - aborting.
+critical libmamba Non-conda folder exists at prefix - aborting.
+
