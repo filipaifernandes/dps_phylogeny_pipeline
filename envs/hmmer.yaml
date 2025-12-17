@@ -1,5 +1,0 @@
-name: hmmer_env
-channels:
-  - bioconda
-dependencies:
-  - hmmer=3.3.2

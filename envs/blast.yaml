@@ -1,5 +1,0 @@
-name: blast_env
-channels:
-  - bioconda
-dependencies:
-  - blast=2.14.1
