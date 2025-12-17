@@ -1,0 +1,49 @@
+# biopython.yaml
+Fetching sequences from NCBI and RefSeq
+Parsing FASTA files, writing merged files
+Sequence cleaning (length filters, ambiguous residues, deduplication)
+
+Essentially, Biopython is the backbone for all sequence manipulation in the pipeline
+
+# requests.yaml
+Fetching sequences from UniProt and Ensembl REST APIs
+Allows the scripts to send HTTP requests, download sequences, and parse them
+Ensures API fetching is reproducible and automated
+
+# cdhit.yaml
+CD-HIT software
+Reduces sequence redundancy in the dataset
+Collapses very similar sequences into a single representative
+Makes alignments faster and cleaner
+Prevents overrepresentation of species that have many similar entries
+
+# hmmer.yaml
+Pfam domain validation of your sequences
+Ensures only sequences with the expected functional domains are kept
+Prevents misannotated or truncated proteins from polluting the alignment
+
+# mafft.yaml
+Performs multiple sequence alignment (MSA)
+Alignment quality directly affects phylogenetic accuracy
+Using --linsi or --localpair gives high-accuracy alignment, especially with variable sequences
+
+# trimal.yaml
+Trims poorly aligned regions in the MSA
+Improves tree reliability by removing noise
+Automated mode (-automated1) balances trimming vs. retaining informative sites
+
+# iqtree.yaml
+Performs Maximum Likelihood phylogenetic inference
+Calculates bootstrap and aLRT support values
+Can do likelihood mapping for tree reliability
+
+# blast.yaml
+Performs orthology checks by blasting sequences against reference database
+Verifies that sequences are indeed Dps1 or Dps2 orthologs
+Adds an extra quality control step before final trees
+
+# amas.yaml
+Computes alignment statistics
+Number of sequences
+Alignment length
+% gaps, conserved sites
