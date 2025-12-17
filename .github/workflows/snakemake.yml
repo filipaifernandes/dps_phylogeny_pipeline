@@ -7,6 +7,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: conda-incubator/setup-miniconda@v2
-      - run: conda install -c conda-forge -c bioconda snakemake
-      - run: snakemake --use-conda --dry-run
+      
+      # Setup conda
+      - uses: conda-incubator/setup-miniconda@v3
+        with:
+          auto-update-conda: true
+          python-version: 3.10
+          activate-environment: snakemake-env  # optional environment name
+
+      # Install Snakemake
+      - run: |
+          conda install -c conda-forge -c bioconda snakemake
+        shell: bash -l {0}
+
+      # Run Snakemake dry-run
+      - run: |
+          snakemake --use-conda --dry-run
+        shell: bash -l {0}   # important to load conda in this step
