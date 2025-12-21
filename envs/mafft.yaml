@@ -3,4 +3,4 @@ channels:
   - conda-forge
   - bioconda
 dependencies:
-  - mafft=7.535
+  - mafft>=7.5
