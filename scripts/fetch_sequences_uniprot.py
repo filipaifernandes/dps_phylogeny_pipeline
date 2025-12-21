@@ -10,13 +10,12 @@ if len(sys.argv) != 4:
 
 gene, taxon, output_file = sys.argv[1:]
 
-# Build a query string safely with URL encoding
-query = f"(gene_exact:{gene} OR {gene}) AND organism:{taxon}"
-params = {
-    "query": query,
-    "format": "fasta"
-}
-url = "https://rest.uniprot.org/uniprotkb/stream?" + urllib.parse.urlencode(params)
+# Replace spaces with '+' in taxon
+taxon = taxon.replace(" ", "+")
+
+# Safe query string
+query = f"gene:{gene}+AND+organism:{taxon}"
+url = f"https://rest.uniprot.org/uniprotkb/stream?query={query}&format=fasta"
 
 try:
     response = requests.get(url, timeout=30)
