@@ -38,7 +38,7 @@ rule fetch_uniprot:
         mkdir -p $(dirname {output})
         python scripts/fetch_sequences_uniprot.py \
             {wildcards.protein} \
-            {config["taxon"]} \
+            {config['taxon']} \
             {output}
         """
 
