@@ -1,11 +1,12 @@
 FROM snakemake/snakemake:v7.32.4
 
-#Set working director
 WORKDIR /pipeline
 
-#Copy pipeline files into container
+#Copy workflow
 COPY . /pipeline
 
-#Default command:
-#uses Conda environments defined in the workflow
+#Ensure conda is configured properly
+RUN conda config --set channel_priority strict
+
+#Run the pipeline
 CMD ["snakemake", "--use-conda", "--cores", "4"]
