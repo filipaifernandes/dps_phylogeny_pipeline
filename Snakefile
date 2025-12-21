@@ -15,16 +15,15 @@ rule fetch_ncbi:
         "data/raw/{protein}/ncbi.fasta"
     conda:
         "envs/biopython.yaml"
-    shell:
-        """
-        mkdir -p $(dirname {output})
-        python scripts/fetch_sequences_ncbi.py \
-            {wildcards.protein} \
-            {config["taxon"]} \
-            {config["email"]} \
-            {config["retmax"]} \
-            {output}
-        """
+    run:
+        protein = wildcards.protein
+        taxon = config["taxon"]
+        email = config["email"]
+        max_seqs = config["retmax"]
+        out_file = output[0]
+
+        shell(f"mkdir -p $(dirname {out_file}) && "
+              f"python scripts/fetch_sequences_ncbi.py {protein} {taxon} {email} {max_seqs} {out_file}")
 
 
 #### Fetch protein sequences from UniProt ####
@@ -33,14 +32,13 @@ rule fetch_uniprot:
         "data/raw/{protein}/uniprot.fasta"
     conda:
         "envs/requests.yaml"
-    shell:
-        """
-        mkdir -p $(dirname {output})
-        python scripts/fetch_sequences_uniprot.py \
-            {wildcards.protein} \
-            {config['taxon']} \
-            {output}
-        """
+    run:
+        protein = wildcards.protein
+        taxon = config["taxon"]
+        out_file = output[0]
+
+        shell(f"mkdir -p $(dirname {out_file}) && "
+              f"python scripts/fetch_sequences_uniprot.py {protein} {taxon} {out_file}")
 
 
 #### Merge and clean sequences ####
@@ -52,11 +50,12 @@ rule merge_clean:
         "data/cleaned/{protein}/cleaned.fasta"
     conda:
         "envs/biopython.yaml"
-    shell:
-        """
-        mkdir -p $(dirname {output})
-        python scripts/merge_and_clean_fasta.py {input} {output}
-        """
+    run:
+        inp = " ".join(input)
+        out_file = output[0]
+
+        shell(f"mkdir -p $(dirname {out_file}) && "
+              f"python scripts/merge_and_clean_fasta.py {inp} {out_file}")
 
 
 #### Reduce redundancy - using CD-HIT ####
@@ -67,11 +66,13 @@ rule cdhit:
         "data/cleaned/{protein}/nonredundant.fasta"
     conda:
         "envs/cdhit.yaml"
-    shell:
-        """
-        mkdir -p $(dirname {output})
-        cd-hit -i {input} -o {output} -c {config[cdhit_identity]} -n 5
-        """
+    run:
+        inp = input[0]
+        out_file = output[0]
+        identity = config["cdhit_identity"]
+
+        shell(f"mkdir -p $(dirname {out_file}) && "
+              f"cd-hit -i {inp} -o {out_file} -c {identity} -n 5")
 
 
 #### Multiple sequence alignment - using MAFFT ####
@@ -82,11 +83,11 @@ rule align:
         "data/aligned/{protein}/aligned.fasta"
     conda:
         "envs/mafft.yaml"
-    shell:
-        """
-        mkdir -p $(dirname {output})
-        mafft --auto {input} > {output}
-        """
+    run:
+        inp = input[0]
+        out_file = output[0]
+
+        shell(f"mkdir -p $(dirname {out_file}) && mafft --auto {inp} > {out_file}")
 
 
 #### Alignment trimming - using TrimAl ####
@@ -97,11 +98,11 @@ rule trim:
         "data/aligned/{protein}/trimmed.fasta"
     conda:
         "envs/trimal.yaml"
-    shell:
-        """
-        mkdir -p $(dirname {output})
-        trimal -automated1 -in {input} -out {output}
-        """
+    run:
+        inp = input[0]
+        out_file = output[0]
+
+        shell(f"mkdir -p $(dirname {out_file}) && trimal -automated1 -in {inp} -out {out_file}")
 
 
 #### Phylogenetic inference - using IQ-TREE ####
@@ -112,8 +113,11 @@ rule iqtree:
         "data/trees/{protein}.treefile"
     conda:
         "envs/iqtree.yaml"
-    shell:
-        """
-        mkdir -p $(dirname {output})
-        iqtree2 -s {input} -m MFP -bb {config[iqtree][bootstrap]} -alrt {config[iqtree][alrt]} -nt AUTO
-        """
+    run:
+        inp = input[0]
+        out_file = output[0]
+        bootstrap = config["iqtree"]["bootstrap"]
+        alrt = config["iqtree"]["alrt"]
+
+        shell(f"mkdir -p $(dirname {out_file}) && "
+              f"iqtree2 -s {inp} -m MFP -bb {bootstrap} -alrt {alrt} -nt AUTO")
