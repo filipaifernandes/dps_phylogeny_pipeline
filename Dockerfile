@@ -1,12 +1,14 @@
 FROM snakemake/snakemake:v7.32.4
 
-WORKDIR /pipeline
+# Install system tools needed
+RUN apt-get update && apt-get install -y \
+    mafft \
+    iqtree \
+    && rm -rf /var/lib/apt/lists/*
 
-#Copy workflow
-COPY . /pipeline
+WORKDIR /workflow
 
-#Ensure conda is configured properly
-RUN conda config --set channel_priority strict
+COPY . /workflow
 
-#Run the pipeline
-CMD ["snakemake", "--use-conda", "--cores", "4"]
+ENTRYPOINT ["snakemake"]
+CMD ["--cores", "1"]
