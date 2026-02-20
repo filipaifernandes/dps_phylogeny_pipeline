@@ -1,4 +1,6 @@
 """A script to fetch the desired protein from UniProt database using REST API"""
+#!/usr/bin/env python3
+#!/usr/bin/env python3
 import requests
 import sys
 import urllib.parse
@@ -10,12 +12,16 @@ if len(sys.argv) != 4:
 
 gene, taxon, output_file = sys.argv[1:]
 
-# URL-encode gene and taxon to avoid invalid characters
+# Encode gene and taxon for URL
 gene_safe = urllib.parse.quote(gene)
-taxon_safe = urllib.parse.quote(taxon)
+taxon_safe = urllib.parse.quote(taxon)  # NO quotes around taxon
 
-# Construct UniProt REST API URL
-url = f"https://rest.uniprot.org/uniprotkb/stream?query=gene_exact:{gene_safe}+AND+organism:{taxon_safe}&format=fasta"
+# Construct URL with gene_exact and properly encoded taxon
+url = (
+    f"https://rest.uniprot.org/uniprotkb/stream?"
+    f"query=gene_exact:{gene_safe}+AND+organism:{taxon_safe}"
+    "&format=fasta"
+)
 
 try:
     response = requests.get(url, timeout=30)
@@ -23,7 +29,6 @@ try:
 except requests.exceptions.RequestException as e:
     sys.exit(f"ERROR: UniProt request failed: {e}")
 
-# If no sequences found, create empty file and warn
 if not response.text.strip():
     print(f"WARNING: No UniProt sequences found for gene='{gene}' and taxon='{taxon}'.")
     with open(output_file, "w") as out_fasta:
