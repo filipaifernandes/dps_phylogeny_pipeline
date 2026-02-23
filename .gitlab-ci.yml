@@ -1,0 +1,13 @@
+image: filipafernandes/dps_phylogeny:004
+
+variables:
+  GIT_DEPTH: "0"
+  GIT_STRATEGY: clone
+
+stages:
+  - test
+
+test_snakemake:
+  stage: test
+  script:
+    - snakemake --cores 1 -n
