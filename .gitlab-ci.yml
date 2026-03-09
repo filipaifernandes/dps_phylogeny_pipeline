@@ -1,4 +1,4 @@
-image: filipafernandes/dps_pipeline:004
+image: filipafernandes/dps_pipeline:005
 
 variables:
   GIT_DEPTH: "0"
