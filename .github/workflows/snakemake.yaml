@@ -5,22 +5,25 @@ on: [push, pull_request]
 jobs:
   test:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      # Setup Miniconda
-      - uses: conda-incubator/setup-miniconda@v3
+      - name: Setup Conda
+        uses: conda-incubator/setup-miniconda@v3
         with:
+          python-version: "3.10"
           auto-update-conda: true
-          python-version: 3.10
-          auto-activate-base: true
+          channels: conda-forge,bioconda,defaults
+          channel-priority: strict
+          activate-environment: snakemake-env
 
-      # Install Snakemake and mamba
-      - run: |
-          conda config --set channel_priority strict
-          conda install -c conda-forge -c bioconda snakemake mamba
-        shell: bash -l {0}
+      - name: Install Snakemake
+        shell: bash -el {0}
+        run: |
+          conda install -y snakemake
 
-      # Run dry-run
-      - run: snakemake --use-conda --dry-run
-        shell: bash -l {0}
+      - name: Snakemake dry-run
+        shell: bash -el {0}
+        run: |
+          snakemake --use-conda --dry-run
