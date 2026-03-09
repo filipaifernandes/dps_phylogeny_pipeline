@@ -89,8 +89,8 @@ rule align:
         "envs/mafft.yaml"
     shell:
         """
-        mkdir -p data/aligned
-        mafft --{config["mafft"]["method"]} {input} > {output}
+        mkdir -p $(dirname {output})
+        mafft --{config[mafft][method]} {input} > {output}
         """
 
 #### Alignment trimming - using TrimAl ####
