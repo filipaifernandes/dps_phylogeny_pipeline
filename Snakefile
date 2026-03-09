@@ -17,9 +17,9 @@ rule fetch_ncbi:
         mkdir -p $(dirname {output})
         python scripts/fetch_sequences_ncbi.py \
         {wildcards.protein} \
-        {config["taxon"]} \
-        {config["email"]} \
-        {config["retmax"]} \
+        {config[taxon]} \
+        {config[email]} \
+        {config[retmax]} \
         {output}
         """
 
@@ -34,9 +34,9 @@ rule fetch_uniprot:
         mkdir -p $(dirname {output})
         python scripts/fetch_sequences_uniprot.py \
         {wildcards.protein} \
-        {config["taxon"]} \
-        {config["email"]} \
-        {config["retmax"]} \
+        {config[taxon]} \
+        {config[email]} \
+        {config[retmax]} \
         {output}
         """
 
