@@ -16,25 +16,27 @@ rule fetch_ncbi:
         """
         mkdir -p $(dirname {output})
         python scripts/fetch_sequences_ncbi.py \
-            {wildcards.protein} \
-            {config["taxon"]} \
-            {config[email]} \
-            {config[retmax]} \
-            {output}
+        {wildcards.protein} \
+        {config["taxon"]} \
+        {config["email"]} \
+        {config["retmax"]} \
+        {output}
         """
-
 
 #### Fetch protein sequences from UniProt ####
 rule fetch_uniprot:
     output:
         "data/raw/{protein}/uniprot.fasta"
     container:
-    	"docker://filipafernandes/dps_pipeline:005"
+        "docker://filipafernandes/dps_pipeline:005"
     shell:
         """
+        mkdir -p $(dirname {output})
         python scripts/fetch_sequences_uniprot.py \
         {wildcards.protein} \
         {config["taxon"]} \
+        {config["email"]} \
+        {config["retmax"]} \
         {output}
         """
 
@@ -73,7 +75,7 @@ rule cdhit:
     shell:
         """
         mkdir -p $(dirname {output})
-        cd-hit -i {input} -o {output} -c {config[cdhit_identity]} -n 5
+        cd-hit -i {input} -o {output} -c {config["cdhit_identity"]} -n 5
         """
 
 
@@ -88,7 +90,7 @@ rule align:
     shell:
         """
         mkdir -p data/aligned
-        mafft --auto {input} > {output}
+        mafft --{config["mafft"]["method"]} {input} > {output}
         """
 
 #### Alignment trimming - using TrimAl ####
@@ -115,6 +117,9 @@ rule tree:
     shell:
         """
         mkdir -p data/trees
-	iqtree2 -s data/aligned/aligned.fasta -m MFP -bb 1000 -nt 1 -redo
-	mv data/aligned/aligned.fasta.treefile data/trees/final.treefile
+        iqtree2 -s {input} -m MFP \
+	-bb {config["iqtree"]["bootstrap"]} \
+	-alrt {config["iqtree"]["alrt"]} \
+	-nt {config["iqtree"]["threads"]} -redo
+        mv data/aligned/aligned.fasta.treefile {output}
         """
