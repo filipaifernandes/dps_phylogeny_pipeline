@@ -18,10 +18,10 @@ jobs:
           channel-priority: strict
           activate-environment: snakemake-env
 
-      - name: Install Snakemake
+      - name: Install Snakemake and Mamba
         shell: bash -el {0}
         run: |
-          conda install -y snakemake
+          conda install -y snakemake mamba
 
       - name: Snakemake dry-run
         shell: bash -el {0}
