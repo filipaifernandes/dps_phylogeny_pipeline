@@ -10,7 +10,7 @@ proteins:
 
 
 #Taxonomic scope
-taxon: Deinococcus
+taxon: "Deinococcus"
 #The species of special interest
 focus_species: Deinococcus radiodurans
 
