@@ -17,7 +17,7 @@ rule fetch_ncbi:
         mkdir -p $(dirname {output})
         python scripts/fetch_sequences_ncbi.py \
             {wildcards.protein} \
-            {config[taxon]} \
+            {config["taxon"]} \
             {config[email]} \
             {config[retmax]} \
             {output}
