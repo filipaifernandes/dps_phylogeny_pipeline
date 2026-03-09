@@ -13,8 +13,6 @@ rule all:
 rule fetch_ncbi:
     output:
         "data/raw/{protein}/ncbi.fasta"
-    conda:
-        "envs/biopython.yaml"
     shell:
         """
         mkdir -p $(dirname {output})
@@ -30,18 +28,16 @@ rule fetch_ncbi:
 #### Fetch protein sequences from UniProt ####
 rule fetch_uniprot:
     output:
-        "data/raw/{protein}/uniprot.fasta"
-    conda:
-        "envs/requests.yaml"
+        "data/raw/{protein}_uniprot.fasta"
+    container:
+        "docker://yourdockerhub/dps_phylogeny_pipeline"
     shell:
         """
-        mkdir -p $(dirname {output})
         python scripts/fetch_sequences_uniprot.py \
-            {wildcards.protein} \
-            {config[taxon]} \
-            {output}
+        {wildcards.protein} \
+        {config[taxon]} \
+        {output}
         """
-
 
 #### Merge and clean sequences ####
 rule merge_clean:
@@ -55,7 +51,7 @@ rule merge_clean:
     shell:
         """
         mkdir -p $(dirname {output})
-        python scripts/merge_and_clean_fasta.py {input[0]} {input[1]} {output}
+        python scripts/merge_clean_fasta.py {input[0]} {input[1]} {output}
         """
 
 
@@ -65,8 +61,6 @@ rule cdhit:
         "data/cleaned/{protein}/cleaned.fasta"
     output:
         "data/cleaned/{protein}/nonredundant.fasta"
-    conda:
-        "envs/cdhit.yaml"
     shell:
         """
         mkdir -p $(dirname {output})
@@ -80,8 +74,6 @@ rule align:
         "data/cleaned/{protein}/nonredundant.fasta"
     output:
         "data/aligned/{protein}/aligned.fasta"
-    conda:
-        "envs/mafft.yaml"
     shell:
         """
         mkdir -p $(dirname {output})
@@ -95,8 +87,6 @@ rule trim:
         "data/aligned/{protein}/aligned.fasta"
     output:
         "data/aligned/{protein}/trimmed.fasta"
-    conda:
-        "envs/trimal.yaml"
     shell:
         """
         mkdir -p $(dirname {output})
@@ -110,10 +100,9 @@ rule iqtree:
         "data/aligned/{protein}/trimmed.fasta"
     output:
         "data/trees/{protein}.treefile"
-    conda:
-        "envs/iqtree.yaml"
     shell:
         """
-        mkdir -p $(dirname {output})
+        mkdir -p data/trees
         iqtree2 -s {input} -m MFP -bb {config[iqtree][bootstrap]} -alrt {config[iqtree][alrt]} -nt AUTO
+        cp {input}.treefile {output}
         """
