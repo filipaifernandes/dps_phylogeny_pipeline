@@ -87,14 +87,11 @@ rule align:
         "data/combined/all_sequences.fasta"
     output:
         "data/aligned/aligned.fasta"
-    conda:
-        "envs/mafft.yaml"
     shell:
         """
         mkdir -p $(dirname {output})
-        # limpa os cabeçalhos antes de alinhar
         awk '/^>/ {{print $1}} /^[^>]/ {{print $0}}' {input} > data/combined/all_sequences_clean.fasta
-        mafft --linsi data/combined/all_sequences_clean.fasta > {output}
+        mafft --auto data/combined/all_sequences_clean.fasta > {output}
         """
 
 #### Alignment trimming - using TrimAl ####
@@ -126,21 +123,4 @@ rule tree:
 	-alrt {config[iqtree][alrt]} \
 	-nt {config[iqtree][threads]} -redo
         mv data/aligned/aligned.fasta.treefile {output}
-        """
-
-rule view_tree:
-    input:
-        "data/trees/final.treefile"
-    conda:
-        "envs/biopython.yaml"
-    shell:
-        """
-        python - <<EOF
-	import sys
-	from Bio import Phylo
-
-	tree_file = "{input}"
-	tree = Phylo.read(tree_file, "newick")
-	Phylo.draw(tree)  # opens an interactive matplotlib window
-	EOF
         """
