@@ -28,9 +28,8 @@ rule fetch_ncbi:
 #### Fetch protein sequences from UniProt ####
 rule fetch_uniprot:
     output:
-        "data/raw/{protein}_uniprot.fasta"
-    container:
-        "docker://yourdockerhub/dps_phylogeny_pipeline"
+        "data/raw/{protein}/uniprot.fasta"
+    "docker://filipafernandes/dps_pipeline:005"
     shell:
         """
         python scripts/fetch_sequences_uniprot.py \
@@ -74,12 +73,12 @@ rule align:
         "data/cleaned/{protein}/nonredundant.fasta"
     output:
         "data/aligned/{protein}/aligned.fasta"
+    container:
+        "docker://filipafernandes/dps_pipeline:005"
     shell:
         """
-        mkdir -p $(dirname {output})
         mafft --auto {input} > {output}
         """
-
 
 #### Alignment trimming - using TrimAl ####
 rule trim:
@@ -103,6 +102,6 @@ rule iqtree:
     shell:
         """
         mkdir -p data/trees
-        iqtree2 -s {input} -m MFP -bb {config[iqtree][bootstrap]} -alrt {config[iqtree][alrt]} -nt AUTO
+        iqtree -s {input} -m MFP -bb {config[iqtree][bootstrap]} -alrt {config[iqtree][alrt]} -nt AUTO
         cp {input}.treefile {output}
         """
