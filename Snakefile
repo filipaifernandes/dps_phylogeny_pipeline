@@ -90,7 +90,9 @@ rule align:
     shell:
         """
         mkdir -p $(dirname {output})
-        mafft --{config[mafft][method]} {input} > {output}
+        # limpa os cabeçalhos antes de alinhar
+        awk '/^>/ {{print $1}} /^[^>]/ {{print $0}}' {input} > data/combined/all_sequences_clean.fasta
+        mafft --linsi data/combined/all_sequences_clean.fasta > {output}
         """
 
 #### Alignment trimming - using TrimAl ####
