@@ -1,12 +1,14 @@
 FROM snakemake/snakemake:latest
 
-RUN mamba install -y -c conda-forge -c bioconda \
+RUN conda install -y -c conda-forge -c bioconda \
     biopython \
     requests \
     mafft \
     cd-hit \
     trimal \
     iqtree \
-    && mamba clean -a -y
+    && conda clean -a -y
+
+ENV PATH="/opt/conda/bin:$PATH"
 
 WORKDIR /pipeline
