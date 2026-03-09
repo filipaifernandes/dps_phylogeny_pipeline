@@ -1,14 +1,12 @@
-FROM snakemake/snakemake:v7.32.4
+FROM snakemake/snakemake:latest
 
-# Install system tools needed
-RUN apt-get update && apt-get install -y \
+RUN mamba install -y -c conda-forge -c bioconda \
+    biopython \
+    requests \
     mafft \
+    cd-hit \
+    trimal \
     iqtree \
-    && rm -rf /var/lib/apt/lists/*
+    && mamba clean -a -y
 
-WORKDIR /workflow
-
-COPY . /workflow
-
-ENTRYPOINT ["snakemake"]
-CMD ["--cores", "1"]
+WORKDIR /pipeline
