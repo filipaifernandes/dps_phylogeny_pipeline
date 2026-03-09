@@ -1,3 +1,5 @@
+os.environ["SNAKEMAKE_CONDA_AUTO_CLEAN"] = "1"
+
 configfile: "config.yaml"
 
 # List of proteins from config.yaml
