@@ -6,8 +6,7 @@ PROTEINS = config["proteins"]
 #### Final target of the workflow ####
 rule all:
     input:
-        expand("data/trees/{protein}.treefile", protein=PROTEINS)
-
+        "data/trees/final.treefile"
 
 #### Fetch protein sequences from NCBI ####
 rule fetch_ncbi:
@@ -29,12 +28,13 @@ rule fetch_ncbi:
 rule fetch_uniprot:
     output:
         "data/raw/{protein}/uniprot.fasta"
-    "docker://filipafernandes/dps_pipeline:005"
+    container:
+    	"docker://filipafernandes/dps_pipeline:005"
     shell:
         """
         python scripts/fetch_sequences_uniprot.py \
         {wildcards.protein} \
-        {config[taxon]} \
+        {config["taxon"]} \
         {output}
         """
 
@@ -53,6 +53,16 @@ rule merge_clean:
         python scripts/merge_clean_fasta.py {input[0]} {input[1]} {output}
         """
 
+rule combine_proteins:
+    input:
+        expand("data/cleaned/{protein}/cleaned.fasta", protein=PROTEINS)
+    output:
+        "data/combined/all_sequences.fasta"
+    shell:
+        """
+        mkdir -p data/combined
+        cat {input} > {output}
+        """
 
 #### Reduce redundancy - using CD-HIT ####
 rule cdhit:
@@ -70,38 +80,41 @@ rule cdhit:
 #### Multiple sequence alignment - using MAFFT ####
 rule align:
     input:
-        "data/cleaned/{protein}/nonredundant.fasta"
+        "data/combined/all_sequences.fasta"
     output:
-        "data/aligned/{protein}/aligned.fasta"
-    container:
-        "docker://filipafernandes/dps_pipeline:005"
+        "data/aligned/aligned.fasta"
+    conda:
+        "envs/mafft.yaml"
     shell:
         """
+        mkdir -p data/aligned
         mafft --auto {input} > {output}
         """
 
 #### Alignment trimming - using TrimAl ####
 rule trim:
     input:
-        "data/aligned/{protein}/aligned.fasta"
+        "data/aligned/aligned.fasta"
     output:
-        "data/aligned/{protein}/trimmed.fasta"
+        "data/aligned/aligned_trimmed.fasta"
+    conda:
+        "envs/trimal.yaml"
     shell:
         """
-        mkdir -p $(dirname {output})
-        trimal -automated1 -in {input} -out {output}
+        trimal -in {input} -out {output} -automated1
         """
 
-
 #### Phylogenetic inference - using IQ-TREE ####
-rule iqtree:
+rule tree:
     input:
-        "data/aligned/{protein}/trimmed.fasta"
+        "data/aligned/aligned.fasta"
     output:
-        "data/trees/{protein}.treefile"
+        "data/trees/final.treefile"
+    conda:
+        "envs/iqtree.yaml"
     shell:
         """
         mkdir -p data/trees
-        iqtree -s {input} -m MFP -bb {config[iqtree][bootstrap]} -alrt {config[iqtree][alrt]} -nt AUTO
-        cp {input}.treefile {output}
+	iqtree2 -s data/aligned/aligned.fasta -m MFP -bb 1000 -nt 1 -redo
+	mv data/aligned/aligned.fasta.treefile data/trees/final.treefile
         """
