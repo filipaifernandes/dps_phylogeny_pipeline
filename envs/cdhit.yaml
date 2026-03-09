@@ -2,4 +2,4 @@ name: cdhit_env
 channels:
   - bioconda
 dependencies:
-  - cd-hit=4.8.1
+  - cd-hit
