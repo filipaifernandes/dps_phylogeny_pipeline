@@ -125,3 +125,20 @@ rule tree:
 	-nt {config[iqtree][threads]} -redo
         mv data/aligned/aligned.fasta.treefile {output}
         """
+
+rule view_tree:
+    input:
+        "data/trees/final.treefile"
+    conda:
+        "envs/biopython.yaml"
+    shell:
+        """
+        python - <<EOF
+	import sys
+	from Bio import Phylo
+
+	tree_file = "{input}"
+	tree = Phylo.read(tree_file, "newick")
+	Phylo.draw(tree)  # opens an interactive matplotlib window
+	EOF
+        """
