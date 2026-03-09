@@ -120,8 +120,8 @@ rule tree:
         """
         mkdir -p data/trees
         iqtree2 -s {input} -m MFP \
-	-bb {config["iqtree"]["bootstrap"]} \
-	-alrt {config["iqtree"]["alrt"]} \
-	-nt {config["iqtree"]["threads"]} -redo
+	-bb {config[iqtree][bootstrap]} \
+	-alrt {config[iqtree][alrt]} \
+	-nt {config[iqtree][threads]} -redo
         mv data/aligned/aligned.fasta.treefile {output}
         """
