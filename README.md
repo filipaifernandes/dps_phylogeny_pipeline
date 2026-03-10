@@ -1,8 +1,11 @@
 # DPS Phylogeny Pipeline
 
-**Automated, reproducible workflow for the retrieval, curation, alignment, and phylogenetic analysis of Dps proteins in Deinococcus species.**
+**Automated and reproducible workflow for the retrieval, curation, alignment, and phylogenetic analysis of Dps proteins in Deinococcus species.**
 
-This pipeline is designed to streamline bioinformatics analysis of **Dps1 and Dps2 proteins of Deinococcus species**, with a primary focus on *Deinococcus radiodurans*. Leveraging **Snakemake** for workflow management, **Conda** for environment reproducibility, and optional **Docker** for OS-level reproducibility, the pipeline integrates sequences from multiple sources, ensures high-quality data preprocessing, and performs robust phylogenetic inference.
+This pipeline performs a complete bioinformatics workflow to analyze Dps1 and Dps2 proteins from Deinococcus species, with a particular interest in Deinococcus radiodurans.
+The workflow is made by using Snakemake and executed within a Docker container, ensuring a fully reproducible and portable computational environment.
+
+The pipeline automatically retrieves sequences from multiple databases, performs dataset preprocessing, generates a multiple sequence alignment, and reconstructs a maximum-likelihood phylogenetic tree.
 
 ---
 
@@ -15,7 +18,7 @@ This pipeline is designed to streamline bioinformatics analysis of **Dps1 and Dp
 5. [Pipeline Workflow](#pipeline-workflow)  
 6. [Reproducibility and Automation](#reproducibility-and-automation)  
 7. [Continuous Integration](#continuous-integration)  
-8. [Optional Docker Execution](#optional-docker-execution)  
+8. [Docker Execution](#optional-docker-execution)  
 9. [Configuration](#configuration)  
 10. [Directory Structure](#directory-structure)  
 11. [References](#references)  
@@ -25,63 +28,62 @@ This pipeline is designed to streamline bioinformatics analysis of **Dps1 and Dp
 
 ## Overview
 
-The DPS Phylogeny Pipeline is intended for **systematic and reproducible phylogenetic analysis** of Dps proteins. It automates the following steps:
+The DPS Phylogeny Pipeline is designed to fully provide a **reproducible and automated workflow for phylogenetic analysis of Dps proteins**. 
+The pipeline performs the following steps:
 
 - Sequence retrieval from **NCBI** and **UniProt**  
 - Sequence merging and cleaning, including duplicate's removal  
+- Combination of Dps1 and Dps2 datasets
 - Redundancy reduction using **CD-HIT**  
 - Multiple sequence alignment using **MAFFT**  
 - Alignment trimming using **TrimAl**  
 - Maximum-likelihood phylogenetic inference with **IQ-TREE**, including model selection and branch support
 
-All steps are executed automatically using Snakemake rules, ensuring that **no manual intervention is required**.
+All steps are executed automatically through Snakemake rules, ensuring that **no manual intervention is required**.
 
 ---
 
 ## Key Features
 
 - **Automated workflow:** Single-command execution of the complete pipeline  
-- **Multi-database integration:** Fetches sequences from NCBI and UniProt  
-- **High-quality preprocessing:** Deduplication, filtering, trimming  
-- **Reproducible environments:** Each tool is installed in a dedicated Conda environment  
+- **Multi-database retrieval:** Fetches sequences from NCBI and UniProt  
+- **High-quality preprocessing:** duplication, filtering, trimming  
+- **Protein dataset integration:** combines multiple Dps proteins into a unified dataset
+- **High-quality alignment:** generated with MAFFT
 - **Phylogenetic rigor:** Alignment trimming, model selection, bootstrap and aLRT support  
-- **Optional OS-level reproducibility:** Docker image for cross-platform consistency  
+- **Containerized execution:** Docker ensures identical behaviour across systems  
 - **CI validation:** Lightweight GitHub Actions workflow ensures workflow integrity on every commit  
 
 ---
 
 ## Installation
+The pipeline is designed to run **inside a Docker container** to guarantee reproducibility and eliminate dependency conflicts.
 
-### Native Installation
+1. Install **Docker** from:
+https://docs.docker.com/get-docker/
 
-1. Install **Miniconda/Anaconda**.  
-2. Clone the repository:
+2. Pull the Docker image:
+```bash
+docker pull filipafernandes/dps_pipeline:005
+```
+
+3. Clone the repository:
 
 ```bash
 git clone https://github.com/yourname/dps_phylogeny_pipeline.git
 cd dps_phylogeny_pipeline
 ```
 
-3. Run the pipeline (tools installed automatically via Conda):
+4. Run the pipeline:
 
 ```bash
 snakemake --use-conda --cores 4
 ```
-
-### Optional Docker Execution
-
-Docker ensures the pipeline runs identically on any system without manual setup:
-
-```bash
-docker build -t dps_pipeline .
-docker run -it dps_pipeline
-```
-
 ---
 
 ## Usage
 
-- Only one command is required for complete execution.  
+- Only one command is required for complete execution.
 - Outputs are structured for clarity:
 
 ```
@@ -92,23 +94,39 @@ data/
 └── trees/           # Phylogenetic trees
 ```
 
-- The pipeline can be runed multiple times with **consistent results**.
+- The pipeline can be run multiple times.
 
 ---
 
 ## Pipeline Workflow
 
 ### 1. Sequence Retrieval
+Protein sequences are retrieved from two sources:
 
-- **NCBI:** Biopython Entrez API  
-- **UniProt:** REST API  
-- Retrieves protein sequences matching gene and taxon parameters.
+**NCBI** 
+- Retrieves usinf the **Biopython Entrez API**  
+- Queries constructed using the configured protein names and taxon
+
+**UniProt:** 
+- Retrieves using the **UniProt REST API**  
+- Complementary dataset to increase sequence coverage
+
+Sequences are stored in:
+data/raw/{protein}/
 
 ### 2. Sequence Cleaning
-
-- Merge sequences from multiple sources  
+Sequences from both databases are merged and processed using a Python script.
+The cleaning step currently performs:
+- Merge fasta files form NCBI and UniProt  
 - Remove duplicates and ambiguous residues  
 - Generate a clean FASTA file for downstream analysis
+
+The resulting dataset is stored in:
+data/cleaned/{protein}/cleaned.fasta
+
+Cleaned sequences for each protein are combined into a single dataset:
+data/combined/all_sequences.fasta
+This allows phylogenetic analysis across multiple Dps homologs.
 
 ### 3. Redundancy Reduction
 
@@ -116,68 +134,123 @@ data/
 - Reduces bias from overrepresented sequences
 
 ### 4. Multiple Sequence Alignment
+Sequences are aligned using MAFFT.
 
-- **MAFFT** aligns non-redundant sequences  
-- Ensures accurate residue positioning for phylogenetic inference
+The workflow uses the MAFFT automatic mode:
+```
+mafft --auto
+```
+
+This allows MAFFT to automatically select the most appropriate alignment algorithm based on dataset characteristics.
+
+The resulting alignment is stored in:
+data/aligned/aligned.fasta
 
 ### 5. Alignment Trimming
+The alignment is processed using TrimAl to remove poorly aligned regions.
 
-- **TrimAl** removes poorly aligned regions  
-- Improves signal-to-noise ratio for tree inference
+The pipeline uses:
+```
+trimal -automated1
+```
+
+This mode automatically determines trimming thresholds to improve alignment quality.
+
+Output:
+data/aligned/aligned_trimmed.fasta
 
 ### 6. Phylogenetic Inference
+Phylogenetic reconstruction is performed using IQ-TREE under a maximum-likelihood framework.
 
-- **IQ-TREE** performs maximum-likelihood inference  
-- **ModelFinder Plus (MFP)** selects the best-fit substitution model  
-- **Bootstrap (1000 replicates) and aLRT** branch support values generated  
+The pipeline performs:
+- ModelFinder Plus (MFP) for substitution model selection
+- Ultrafast bootstrap analysis
+- SH-aLRT branch support estimation
+
+Example command used by the workflow:
+```
+iqtree2 -s alignment.fasta -m MFP -bb 1000 -alrt 1000
+```
+
+The resulting tree is saved as:
+data/trees/final.treefile
 
 ---
 
 ## Reproducibility and Automation
+Reproducibility is ensured through:
 
-- Each bioinformatics tool resides in its **own Conda environment**  
-- Optional Docker ensures **OS-level reproducibility**  
-- Snakemake ensures **all steps are executed automatically** in correct order  
-- Multiple runs produce **identical outputs** for the same input parameters
+- Snakemake workflow management
+- Docker containerized environment
+- Clearly defined configuration parameters
+- Automated dependency resolution
+
+Snakemake also constructs a Directed Acyclic Graph (DAG) of the workflow to guarantee correct execution order.
 
 ---
 
 ## Continuous Integration
+The repository includes a GitHub Actions workflow that automatically validates the pipeline.
 
-- GitHub Actions workflow performs a **dry-run** on every commit and pull request  
-- Validates:
-  - Snakefile syntax  
-  - Rule dependencies and DAG integrity  
-  - Config file correctness  
-- Ensures pipeline maintainability and error detection without performing heavy computations
+The CI workflow performs:
+- Snakemake dry-run execution
+- Validation of the Snakefile
+- Verification of rule dependencies and DAG structure
+
+This ensures that changes to the repository do not break the workflow.
 
 ---
 
-## Optional Docker Execution
+## Docker Execution
+The pipeline uses a Docker container based on:
+```
+snakemake/snakemake:latest
+```
 
-- Based on the **official Snakemake Docker image (`snakemake/snakemake:v7.32.4`)**  
-- Provides an isolated execution environment  
-- Ensures identical behaviour across machines, regardless of OS or installed packages
+Additional bioinformatics tools are installed in the image:
+- Biopython
+- Requests
+- MAFFT
+- CD-HIT
+- TrimAl
+- IQ-TREE
+
+This ensures the pipeline runs identically on Linux, macOS, or Windows systems.
 
 ---
 
 ## Configuration
+Pipeline behaviour is controlled through the `config.yaml` file.
 
-`config.yaml` allows customization of:
-
-- `gene` — Gene name (Dps1 or Dps2)  
-- `taxon` — Target organism (default: Deinococcus)  
-- `email` — Required for NCBI Entrez API  
-- `max_seqs` — Maximum sequences to retrieve  
-
-Example:
-
+Example configuration:
 ```yaml
-gene: "dps"
-taxon: "Deinococcus"
-email: "your_email@domain.com"
-max_seqs: 500
+proteins: 
+- Dps1 
+- Dps2 
+
+taxon: Deinococcus 
+focus_species: Deinococcus radiodurans 
+
+min_length: 150 
+max_length: 300 
+
+cdhit_identity: 0.95 
+
+email: youremail@example.pt 
+retmax: 500
 ```
+
+**Parameter description**
+| Parameter      | Description                                       |
+| -------------- | ------------------------------------------------- |
+| proteins       | Target proteins to retrieve                       |
+| taxon          | Taxonomic group used for sequence search          |
+| focus_species  | Species of special interest                       |
+| min_length     | Minimum allowed sequence length                   |
+| max_length     | Maximum allowed sequence length                   |
+| cdhit_identity | Sequence identity threshold for CD-HIT clustering |
+| email          | Required for NCBI Entrez API                      |
+| retmax         | Maximum number of sequences retrieved per query   |
 
 ---
 
@@ -185,14 +258,33 @@ max_seqs: 500
 
 ```
 dps_phylogeny_pipeline/
-├── Snakefile                 # Main workflow
-├── config.yaml               # User configuration
-├── README.md                 # Documentation
-├── Dockerfile                # Optional Docker execution
-├── envs/                     # Conda environments per tool
-├── scripts/                  # Python scripts for sequence retrieval and cleaning
-├── data/                     # Raw, cleaned, aligned sequences and trees
-└── .github/workflows/        # CI/CD configuration
+
+Snakefile
+config.yaml
+Dockerfile
+README.md
+
+scripts/
+    fetch_sequences_ncbi.py
+    fetch_sequences_uniprot.py
+    merge_clean_fasta.py
+
+envs/
+    biopython.yaml
+    cdhit.yaml
+    iqtree.yaml
+    mafft.yaml
+    requests.yaml
+    trimal.yaml
+
+data/
+    raw/
+    cleaned/
+    aligned/
+    trees/
+
+.github/workflows/
+    snakemake.yaml
 ```
 
 ---
@@ -210,5 +302,9 @@ dps_phylogeny_pipeline/
 
 ## Contact
 
-For questions, troubleshooting, or contributions:  
-**filipaifernandes.2005@gmail.com**
+Filipa Fernandes
+Bioinformatics Student
+
+For questions, troubleshooting or contributions regarding the pipeline:
+[filipaifernandes.2005@gmail.com](mailto:filipaifernandes.2005@gmail.com)
+
