@@ -50,7 +50,7 @@ rule merge_clean:
     output:
         "data/cleaned/{protein}/cleaned.fasta"
     conda:
-        "envs/biopython.yaml"
+        "envs/pipeline.yaml"
     shell:
         """
         mkdir -p $(dirname {output})
@@ -105,7 +105,7 @@ rule trim:
     output:
         "data/aligned/aligned_trimmed.fasta"
     conda:
-        "envs/trimal.yaml"
+        "envs/pipeline.yaml"
     shell:
         """
         trimal -in {input} -out {output} -automated1
@@ -119,7 +119,7 @@ rule iqtree:
         "data/trees/final.treefile"
     threads: 8
     conda:
-        "envs/iqtree.yaml"
+        "envs/pipeline.yaml"
     shell:
         """
         mkdir -p data/trees
