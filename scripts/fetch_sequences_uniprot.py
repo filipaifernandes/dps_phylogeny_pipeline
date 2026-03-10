@@ -2,7 +2,7 @@
 import sys
 import requests
 
-if len(sys.argv) != 5:
+if len(sys.argv) != 6:
     sys.exit("Usage: fetch_sequences_uniprot.py <gene> <organism> <email> <max_seqs> <output>")
 
 gene, organism, email, max_seqs, outfile = sys.argv[1:]
