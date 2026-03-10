@@ -59,7 +59,7 @@ rule merge_clean:
 
 rule combine_proteins:
     input:
-        expand("data/cleaned/{protein}/cleaned.fasta", protein=PROTEINS)
+        expand("data/cleaned/{protein}/nonredundant.fasta", protein=PROTEINS)
     output:
         "data/combined/all_sequences.fasta"
     shell:
@@ -74,10 +74,11 @@ rule cdhit:
         "data/cleaned/{protein}/cleaned.fasta"
     output:
         "data/cleaned/{protein}/nonredundant.fasta"
+    threads: 4
     shell:
         """
         mkdir -p $(dirname {output})
-        cd-hit -i {input} -o {output} -c {config["cdhit_identity"]} -n 5
+        cd-hit -i {input} -o {output} -c {config[cdhit_identity]} -n 5 -T {threads}
         """
 
 
@@ -87,11 +88,14 @@ rule align:
         "data/combined/all_sequences.fasta"
     output:
         "data/aligned/aligned.fasta"
+    threads: 8
+    log:
+        "logs/mafft.log"
     shell:
         """
         mkdir -p $(dirname {output})
-        awk '/^>/ {{print $1}} /^[^>]/ {{print $0}}' {input} > data/combined/all_sequences_clean.fasta
-        mafft --auto data/combined/all_sequences_clean.fasta > {output}
+        mkdir -p logs
+        mafft --auto --thread {threads} {input} > {output} 2> {log}
         """
 
 #### Alignment trimming - using TrimAl ####
@@ -108,19 +112,21 @@ rule trim:
         """
 
 #### Phylogenetic inference - using IQ-TREE ####
-rule tree:
+rule iqtree:
     input:
-        "data/aligned/aligned.fasta"
+        "data/aligned/aligned_trimmed.fasta"
     output:
         "data/trees/final.treefile"
+    threads: 8
     conda:
         "envs/iqtree.yaml"
     shell:
         """
         mkdir -p data/trees
         iqtree2 -s {input} -m MFP \
-	-bb {config[iqtree][bootstrap]} \
-	-alrt {config[iqtree][alrt]} \
-	-nt {config[iqtree][threads]} -redo
-        mv data/aligned/aligned.fasta.treefile {output}
+        -bb {config[iqtree][bootstrap]} \
+        -alrt {config[iqtree][alrt]} \
+        -nt {threads} -redo
+
+        mv data/aligned/aligned_trimmed.fasta.treefile {output}
         """
