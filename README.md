@@ -303,6 +303,7 @@ data/
 ## Contact
 
 Filipa Fernandes
+
 Bioinformatics Student
 
 For questions, troubleshooting or contributions regarding the pipeline:
