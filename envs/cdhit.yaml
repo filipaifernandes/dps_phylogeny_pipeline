@@ -1,4 +1,3 @@
-name: cdhit_env
 channels:
   - bioconda
 dependencies:
