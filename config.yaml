@@ -20,7 +20,7 @@ min_length: 150
 max_length: 300
 
 cdhit_identity: 0.95 #collapse highly similar sequences
-
+word_length: 5
 
 #Alignment settings - L-INS-i is recommended for protein alignments, with conserved motifs and moderate divergence
 mafft:
