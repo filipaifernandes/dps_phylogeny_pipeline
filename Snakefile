@@ -6,7 +6,9 @@ PROTEINS = config["proteins"]
 #### Final target of the workflow ####
 rule all:
     input:
-        "data/trees/final.treefile"
+    	"data/trees/Dps1.treefile",
+    	"data/trees/Dps2.treefile",
+    	"data/trees/final.treefile"
 
 #### Fetch protein sequences from NCBI ####
 rule fetch_ncbi:
@@ -80,7 +82,7 @@ rule cdhit:
         """
 
 #### Multiple sequence alignment - using MAFFT ####
-rule align:
+rule align_combined:
     input:
         "data/combined/all_sequences.fasta"
     output:
@@ -96,9 +98,24 @@ rule align:
         mkdir -p logs
         mafft --auto --thread {threads} {input} > {output} 2> {log}
         """
+rule align_individual:
+    input:
+        "data/cleaned/{protein}/nonredundant.fasta"
+    output:
+        "data/aligned/{protein}_aligned.fasta"
+    conda:
+        "envs/pipeline.yaml"
+    threads: 4
+    log:
+        "logs/mafft_{protein}.log"
+    shell:
+        """
+        mkdir -p $(dirname {output})
+        mafft --auto --thread {threads} {input} > {output} 2> {log}
+        """
 
 #### Alignment trimming - using TrimAl ####
-rule trim:
+rule trim_combined:
     input:
         "data/aligned/aligned.fasta"
     output:
@@ -109,9 +126,20 @@ rule trim:
         """
         trimal -in {input} -out {output} -automated1
         """
+rule trim_individual:
+    input:
+        "data/aligned/{protein}_aligned.fasta"
+    output:
+        "data/aligned/{protein}_aligned_trimmed.fasta"
+    conda:
+        "envs/pipeline.yaml"
+    shell:
+        """
+        trimal -in {input} -out {output} -automated1
+        """
 
 #### Phylogenetic inference - using IQ-TREE ####
-rule iqtree:
+rule iqtree_combined:
     input:
         "data/aligned/aligned_trimmed.fasta"
     output:
@@ -128,4 +156,22 @@ rule iqtree:
         -nt {threads} -redo
 
         mv data/aligned/aligned_trimmed.fasta.treefile {output}
+        """
+        
+rule iqtree_individual:
+    input:
+        "data/aligned/{protein}_aligned_trimmed.fasta"
+    output:
+        "data/trees/{protein}.treefile"
+    threads: 4
+    conda:
+        "envs/pipeline.yaml"
+    shell:
+        """
+        mkdir -p data/trees
+        iqtree2 -s {input} -m MFP \
+        -bb {config[iqtree][bootstrap]} \
+        -alrt {config[iqtree][alrt]} \
+        -nt {threads} -redo
+        mv {input}.treefile {output}
         """
