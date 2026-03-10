@@ -6,9 +6,9 @@ PROTEINS = config["proteins"]
 #### Final target of the workflow ####
 rule all:
     input:
-    	"data/trees/Dps1.treefile",
-    	"data/trees/Dps2.treefile",
-    	"data/trees/final.treefile"
+        "data/trees/final.treefile",
+        expand("data/trees/{protein}.treefile", protein=PROTEINS)
+
 
 #### Fetch protein sequences from NCBI ####
 rule fetch_ncbi:
@@ -24,6 +24,7 @@ rule fetch_ncbi:
         {config[retmax]} \
         {output}
         """
+
 
 #### Fetch protein sequences from UniProt ####
 rule fetch_uniprot:
@@ -42,6 +43,7 @@ rule fetch_uniprot:
         {output}
         """
 
+
 #### Merge and clean sequences ####
 rule merge_clean:
     input:
@@ -55,6 +57,24 @@ rule merge_clean:
         python scripts/merge_clean_fasta.py {input[0]} {input[1]} {output}
         """
 
+
+#### Reduce redundancy - using CD-HIT ####
+rule cdhit:
+    input:
+        "data/cleaned/{protein}/cleaned.fasta"
+    output:
+        "data/cleaned/{protein}/nonredundant.fasta"
+    conda:
+        "envs/pipeline.yaml"
+    threads: 4
+    shell:
+        """
+        mkdir -p $(dirname {output})
+        cd-hit -i {input} -o {output} -c {config[cdhit_identity]} -n {config[word_length]}
+        """
+
+
+#### Combine proteins ####
 rule combine_proteins:
     input:
         expand("data/cleaned/{protein}/nonredundant.fasta", protein=PROTEINS)
@@ -66,21 +86,6 @@ rule combine_proteins:
         cat {input} > {output}
         """
 
-#### Reduce redundancy - using CD-HIT ####
-rule cdhit:
-    input:
-        "data/cleaned/{protein}/cleaned.fasta"
-    output:
-        "data/cleaned/{protein}/nonredundant.fasta"
-    conda:
-    	"envs/pipeline.yaml"
-    threads: 4
-    shell:
-        """
-        mkdir -p $(dirname {output})
-	cd-hit -i {input} -o {output} -c 0.95 -n 5 -T {threads}
-        """
-
 #### Multiple sequence alignment - using MAFFT ####
 rule align_combined:
     input:
@@ -88,16 +93,15 @@ rule align_combined:
     output:
         "data/aligned/aligned.fasta"
     conda:
-    	"envs/pipeline.yaml"
+        "envs/pipeline.yaml"
     threads: 8
-    log:
-        "logs/mafft.log"
     shell:
         """
         mkdir -p $(dirname {output})
-        mkdir -p logs
-        mafft --auto --thread {threads} {input} > {output} 2> {log}
+        mafft --auto --thread {threads} {input} > {output}
         """
+
+
 rule align_individual:
     input:
         "data/cleaned/{protein}/nonredundant.fasta"
@@ -106,13 +110,12 @@ rule align_individual:
     conda:
         "envs/pipeline.yaml"
     threads: 4
-    log:
-        "logs/mafft_{protein}.log"
     shell:
         """
         mkdir -p $(dirname {output})
-        mafft --auto --thread {threads} {input} > {output} 2> {log}
+        mafft --auto --thread {threads} {input} > {output}
         """
+
 
 #### Alignment trimming - using TrimAl ####
 rule trim_combined:
@@ -126,6 +129,8 @@ rule trim_combined:
         """
         trimal -in {input} -out {output} -automated1
         """
+
+
 rule trim_individual:
     input:
         "data/aligned/{protein}_aligned.fasta"
@@ -138,26 +143,28 @@ rule trim_individual:
         trimal -in {input} -out {output} -automated1
         """
 
+
 #### Phylogenetic inference - using IQ-TREE ####
 rule iqtree_combined:
     input:
         "data/aligned/aligned_trimmed.fasta"
     output:
         "data/trees/final.treefile"
-    threads: 8
+    threads: 4
     conda:
         "envs/pipeline.yaml"
     shell:
         """
         mkdir -p data/trees
         iqtree2 -s {input} -m MFP \
-        -bb {config[iqtree][bootstrap]} \
-        -alrt {config[iqtree][alrt]} \
+        -bb {config[bootstrap]} \
+        -alrt {config[alrt]} \
+        -seed {config[seed]} \
         -nt {threads} -redo
-
         mv data/aligned/aligned_trimmed.fasta.treefile {output}
         """
-        
+
+
 rule iqtree_individual:
     input:
         "data/aligned/{protein}_aligned_trimmed.fasta"
