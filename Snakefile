@@ -1,5 +1,3 @@
-os.environ["SNAKEMAKE_CONDA_AUTO_CLEAN"] = "1"
-
 configfile: "config.yaml"
 
 # List of proteins from config.yaml
@@ -49,8 +47,6 @@ rule merge_clean:
         "data/raw/{protein}/uniprot.fasta"
     output:
         "data/cleaned/{protein}/cleaned.fasta"
-    conda:
-        "envs/pipeline.yaml"
     shell:
         """
         mkdir -p $(dirname {output})
@@ -74,13 +70,14 @@ rule cdhit:
         "data/cleaned/{protein}/cleaned.fasta"
     output:
         "data/cleaned/{protein}/nonredundant.fasta"
+    conda:
+    	"envs/pipeline.yaml"
     threads: 4
     shell:
         """
         mkdir -p $(dirname {output})
-        cd-hit -i {input} -o {output} -c {config[cdhit_identity]} -n 5 -T {threads}
+	cd-hit -i {input} -o {output} -c 0.95 -n 5 -T {threads}
         """
-
 
 #### Multiple sequence alignment - using MAFFT ####
 rule align:
@@ -88,6 +85,8 @@ rule align:
         "data/combined/all_sequences.fasta"
     output:
         "data/aligned/aligned.fasta"
+    conda:
+    	"envs/pipeline.yaml"
     threads: 8
     log:
         "logs/mafft.log"
