@@ -84,9 +84,10 @@ cd dps_phylogeny_pipeline
 snakemake --use-singularity --cores 4
 ```
 The required container image 
-```(docker://filipafernandes/dps_pipeline:005)
 ```
- will be automatically downloaded and executed through Singularity.
+(docker://filipafernandes/dps_pipeline:005)
+```
+will be automatically downloaded and executed through Singularity.
 ---
 
 ## Usage
