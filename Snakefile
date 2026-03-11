@@ -70,6 +70,7 @@ rule cdhit:
         cd-hit -i {input} -o {output} -c {config[cdhit_identity]} -n {config[word_length]}
         """
 
+##Exclusive to this analysis (can be documented if not needed) 
 #### Create truncated Dps1 sequence (aa 54–207) ####
 rule truncate_dps1:
     input:
