@@ -155,9 +155,8 @@ rule iqtree_combined:
         """
         iqtree -s {input} \
         -m MFP \
-        -B {config["iqtree"]["bootstrap"]} \
-        --alrt {config["iqtree"]["alrt"]} \
-        -seed {config["seed"]} \
+        -B {config[iqtree][bootstrap]} \
+        --alrt {config[iqtree][alrt]} \
         -T {threads} \
         --prefix data/trees/final \
         --redo
@@ -173,10 +172,9 @@ rule iqtree_individual:
         """
         iqtree -s {input} \
         -m MFP \
-        -B {config["iqtree"]["bootstrap"]} \
-        --alrt {config["iqtree"]["alrt"]} \
+        -B {config[iqtree][bootstrap]} \
+        --alrt {config[iqtree][alrt]} \
         -T {threads} \
         --prefix data/trees/{wildcards.protein} \
         --redo
         """
-
