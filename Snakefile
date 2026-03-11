@@ -144,9 +144,9 @@ rule iqtree_combined:
         """
         iqtree -s {input} \
         -m MFP \
-        -B {config[iqtree][bootstrap]} \
-        --alrt {config[iqtree][alrt]} \
-        -seed {config[seed]} \
+        -B {config["iqtree"]["bootstrap"]} \
+        --alrt {config["iqtree"]["alrt"]} \
+        -seed {config["seed"]} \
         -T {threads} \
         --prefix data/trees/final \
         --redo
