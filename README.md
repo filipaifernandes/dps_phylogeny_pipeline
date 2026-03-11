@@ -166,7 +166,7 @@ trimal -automated1
 
 This mode automatically determines trimming thresholds to improve alignment quality.
 
-Output:<br>
+Output: <br>
 data/aligned/aligned_trimmed.fasta
 
 ### 6. Phylogenetic Inference
