@@ -7,8 +7,7 @@ RUN conda install -y -c conda-forge -c bioconda \
     cd-hit \
     trimal \
     iqtree \
+    seqkit \
     && conda clean -a -y
-
-ENV PATH="/opt/conda/bin:$PATH"
 
 WORKDIR /pipeline
