@@ -1,4 +1,4 @@
-configfile: "config/config.yaml"
+configfile: "config.yaml"
 container: "docker://filipafernandes/dps_pipeline:005"
 PROTEINS = config["proteins"]
 
