@@ -1,7 +1,8 @@
-configfile: "config.yaml"
-
-# List of proteins from config.yaml
+configfile: "config/config.yaml"
+container: "docker://filipafernandes/dps_pipeline:005"
 PROTEINS = config["proteins"]
+
+
 
 #### Final target of the workflow ####
 rule all:
@@ -30,8 +31,6 @@ rule fetch_ncbi:
 rule fetch_uniprot:
     output:
         "data/raw/{protein}/uniprot.fasta"
-    container:
-        "docker://filipafernandes/dps_pipeline:005"
     shell:
         """
         mkdir -p $(dirname {output})
@@ -64,8 +63,6 @@ rule cdhit:
         "data/cleaned/{protein}/cleaned.fasta"
     output:
         "data/cleaned/{protein}/nonredundant.fasta"
-    conda:
-        "envs/pipeline.yaml"
     threads: 4
     shell:
         """
@@ -92,8 +89,6 @@ rule align_combined:
         "data/combined/all_sequences.fasta"
     output:
         "data/aligned/aligned.fasta"
-    conda:
-        "envs/pipeline.yaml"
     threads: 8
     shell:
         """
@@ -107,8 +102,6 @@ rule align_individual:
         "data/cleaned/{protein}/nonredundant.fasta"
     output:
         "data/aligned/{protein}_aligned.fasta"
-    conda:
-        "envs/pipeline.yaml"
     threads: 4
     shell:
         """
@@ -123,8 +116,6 @@ rule trim_combined:
         "data/aligned/aligned.fasta"
     output:
         "data/aligned/aligned_trimmed.fasta"
-    conda:
-        "envs/pipeline.yaml"
     shell:
         """
         trimal -in {input} -out {output} -automated1
@@ -136,8 +127,6 @@ rule trim_individual:
         "data/aligned/{protein}_aligned.fasta"
     output:
         "data/aligned/{protein}_aligned_trimmed.fasta"
-    conda:
-        "envs/pipeline.yaml"
     shell:
         """
         trimal -in {input} -out {output} -automated1
@@ -151,19 +140,17 @@ rule iqtree_combined:
     output:
         "data/trees/final.treefile"
     threads: 4
-    conda:
-        "envs/pipeline.yaml"
     shell:
         """
-        mkdir -p data/trees
-        iqtree2 -s {input} -m MFP \
-        -bb {config[bootstrap]} \
-        -alrt {config[alrt]} \
+        iqtree -s {input} \
+        -m MFP \
+        -B {config[iqtree][bootstrap]} \
+        --alrt {config[iqtree][alrt]} \
         -seed {config[seed]} \
-        -nt {threads} -redo
-        mv data/aligned/aligned_trimmed.fasta.treefile {output}
+        -T {threads} \
+        --prefix data/trees/final \
+        --redo
         """
-
 
 rule iqtree_individual:
     input:
@@ -171,14 +158,13 @@ rule iqtree_individual:
     output:
         "data/trees/{protein}.treefile"
     threads: 4
-    conda:
-        "envs/pipeline.yaml"
     shell:
         """
-        mkdir -p data/trees
-        iqtree2 -s {input} -m MFP \
-        -bb {config[iqtree][bootstrap]} \
-        -alrt {config[iqtree][alrt]} \
-        -nt {threads} -redo
-        mv {input}.treefile {output}
+        iqtree -s {input} \
+        -m MFP \
+        -B {config[iqtree][bootstrap]} \
+        --alrt {config[iqtree][alrt]} \
+        -T {threads} \
+        --prefix data/trees/{wildcards.protein} \
+        --redo
         """
