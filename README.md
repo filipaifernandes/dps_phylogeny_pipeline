@@ -118,10 +118,12 @@ Protein sequences are retrieved from two sources:
 - Complementary dataset to increase sequence coverage
 
 Sequences are stored in: 
+
 data/raw/{protein}/
 
 ### 2. Sequence Cleaning
 Sequences from both databases are merged and processed using a Python script.
+
 The cleaning step currently performs:
 - Merge fasta files form NCBI and UniProt  
 - Remove duplicates and ambiguous residues  
