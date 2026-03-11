@@ -70,11 +70,22 @@ rule cdhit:
         cd-hit -i {input} -o {output} -c {config[cdhit_identity]} -n {config[word_length]}
         """
 
+#### Create truncated Dps1 sequence (aa 54–207) ####
+rule truncate_dps1:
+    input:
+        "data/cleaned/dps1/nonredundant.fasta"
+    output:
+        "data/cleaned/dps1/dps1_trunc.fasta"
+    shell:
+        """
+        python scripts/truncate_dps1.py {input} {output}
+        """
 
 #### Combine proteins ####
 rule combine_proteins:
     input:
-        expand("data/cleaned/{protein}/nonredundant.fasta", protein=PROTEINS)
+        expand("data/cleaned/{protein}/nonredundant.fasta", protein=PROTEINS),
+        "data/cleaned/dps1/dps1_trunc.fasta"
     output:
         "data/combined/all_sequences.fasta"
     shell:
@@ -162,8 +173,8 @@ rule iqtree_individual:
         """
         iqtree -s {input} \
         -m MFP \
-        -B {config[iqtree][bootstrap]} \
-        --alrt {config[iqtree][alrt]} \
+        -B {config["iqtree"]["bootstrap"]} \
+        --alrt {config["iqtree"]["alrt"]} \
         -T {threads} \
         --prefix data/trees/{wildcards.protein} \
         --redo
