@@ -278,3 +278,4 @@ Bioinformatics Student
 
 For questions, troubleshooting or contributions regarding the pipeline:
 [filipaifernandes.2005@gmail.com](mailto:filipaifernandes.2005@gmail.com)
+
