@@ -117,8 +117,7 @@ Protein sequences are retrieved from two sources:
 - Retrieves using the **UniProt REST API**  
 - Complementary dataset to increase sequence coverage
 
-Sequences are stored in: 
-
+Sequences are stored in: <br>
 data/raw/{protein}/
 
 ### 2. Sequence Cleaning
