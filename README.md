@@ -91,17 +91,17 @@ will be automatically downloaded and executed through Singularity.
 ## Usage
 
 - Only one command is required for complete execution.
+- The pipeline can be run multiple times.
 - Outputs are structured for clarity:
 
 ```
 data/
 ├── raw/             # Retrieved sequences
-├── cleaned/         # Merged and filtered sequences
+├── cleaned/         # Filtered sequences
+├── combined/        # Merged sequences
 ├── aligned/         # MAFFT alignments and trimmed alignments
 └── trees/           # Phylogenetic trees
 ```
-
-- The pipeline can be run multiple times.
 
 ---
 ## Pipeline Workflow
@@ -117,7 +117,7 @@ Protein sequences are retrieved from two sources:
 - Retrieves using the **UniProt REST API**  
 - Complementary dataset to increase sequence coverage
 
-Sequences are stored in:
+Sequences are stored in: 
 data/raw/{protein}/
 
 ### 2. Sequence Cleaning
