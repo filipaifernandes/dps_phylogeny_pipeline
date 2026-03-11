@@ -56,6 +56,7 @@ All steps are executed automatically through Snakemake rules, ensuring that **no
 The pipeline uses **Snakemake with Singularity containers** to guarantee reproducibility.
 
 1. Install **Snakemake**
+
 Recommended installation via Conda:
 ```bash
 conda install -c conda-forge -c bioconda snakemake
