@@ -50,6 +50,7 @@ All steps are executed automatically through Snakemake rules, ensuring that **no
 - **Phylogenetic rigor:** Alignment trimming, model selection, bootstrap and aLRT support  
 - **Containerized execution:** Docker ensures identical behaviour across systems  
 - **CI validation:** Lightweight GitHub Actions workflow ensures workflow integrity on every commit  
+- **Dps1 truncation:** automatically truncates Dps1 sequences (aa 54–207) for downstream analyses
 
 ---
 ## Installation
@@ -109,7 +110,7 @@ data/
 Protein sequences are retrieved from two sources:
 
 **NCBI** 
-- Retrieves usinf the **Biopython Entrez API**  
+- Retrieves using the **Biopython Entrez API**  
 - Queries constructed using the configured protein names and taxon
 
 **UniProt:** 
@@ -132,6 +133,9 @@ data/cleaned/{protein}/cleaned.fasta
 Cleaned sequences for each protein are combined into a single dataset:
 data/combined/all_sequences.fasta
 This allows phylogenetic analysis across multiple Dps homologs.
+
+After merging and cleaning, the Dps1 sequences are **truncated to amino acids 54–207** before being combined with other protein datasets. This ensures uniformity and focuses the phylogenetic analysis on the conserved region of Dps1.
+Output: data/cleaned/dps1/dps1_trunc.fasta
 
 ### 3. Redundancy Reduction
 
