@@ -182,7 +182,7 @@ Example command used by the workflow:
 iqtree2 -s alignment.fasta -m MFP -bb 1000 -alrt 1000
 ```
 
-The resulting tree is saved as:
+The resulting tree is saved as: <br>
 data/trees/final.treefile
 
 ---
