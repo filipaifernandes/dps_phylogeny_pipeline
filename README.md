@@ -117,7 +117,7 @@ Protein sequences are retrieved from two sources:
 - Retrieves using the **UniProt REST API**  
 - Complementary dataset to increase sequence coverage
 
-Sequences are stored in: <br>
+Sequences are stored in:<br>
 data/raw/{protein}/
 
 ### 2. Sequence Cleaning
@@ -128,14 +128,14 @@ The cleaning step currently performs:
 - Remove duplicates and ambiguous residues  
 - Generate a clean FASTA file for downstream analysis
 
-The resulting dataset is stored in:
+The resulting dataset is stored in:<br>
 data/cleaned/{protein}/cleaned.fasta
 
-Cleaned sequences for each protein are combined into a single dataset:
-data/combined/all_sequences.fasta
+Cleaned sequences for each protein are combined into a single dataset:<br>
+data/combined/all_sequences.fasta<br>
 This allows phylogenetic analysis across multiple Dps homologs.
 
-After merging and cleaning, the Dps1 sequences are **truncated to amino acids 54–207** before being combined with other protein datasets. This ensures uniformity and focuses the phylogenetic analysis on the conserved region of Dps1.
+After merging and cleaning, the Dps1 sequences are **truncated to amino acids 54–207** before being combined with other protein datasets. This ensures uniformity and focuses the phylogenetic analysis on the conserved region of Dps1.<br>
 Output: data/cleaned/dps1/dps1_trunc.fasta
 
 ### 3. Redundancy Reduction
@@ -153,7 +153,7 @@ mafft --auto
 
 This allows MAFFT to automatically select the most appropriate alignment algorithm based on dataset characteristics.
 
-The resulting alignment is stored in:
+The resulting alignment is stored in:<br>
 data/aligned/aligned.fasta
 
 ### 5. Alignment Trimming
@@ -166,7 +166,7 @@ trimal -automated1
 
 This mode automatically determines trimming thresholds to improve alignment quality.
 
-Output:
+Output:<br>
 data/aligned/aligned_trimmed.fasta
 
 ### 6. Phylogenetic Inference
