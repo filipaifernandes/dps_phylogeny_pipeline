@@ -79,7 +79,8 @@ rule truncate_dps1:
         "data/cleaned/dps1/dps1_trunc.fasta"
     shell:
         """
-        python scripts/truncate_dps1.py {input} {output}
+        python scripts/truncate_dps1.py {input} {output}\
+        {config[truncation][start]} {config[truncation][end]}
         """
 
 #### Combine proteins ####
