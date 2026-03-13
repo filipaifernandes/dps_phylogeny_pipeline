@@ -7,6 +7,18 @@ PROTEINS = config["proteins"]
 #### Final target of the workflow ####
 rule all:
     input:
+        "data/raw/{protein}/ncbi.fasta",
+        "data/raw/{protein}/uniprot.fasta",
+        "data/raw/{protein}/ncbi.fasta",
+        "data/raw/{protein}/uniprot.fasta",
+        "data/cleaned/{protein}/nonredundant.fasta",
+        "data/cleaned/dps1/dps1_trunc.fasta",
+        expand("data/cleaned/{protein}/nonredundant.fasta", protein=PROTEINS),
+        "data/cleaned/dps1/dps1_trunc.fasta",
+        "data/aligned/aligned.fasta",
+        "data/aligned/{protein}_aligned.fasta",
+        "data/aligned/aligned_trimmed.fasta",
+        "data/aligned/{protein}_aligned_trimmed.fasta",
         "data/trees/final.treefile",
         expand("data/trees/{protein}.treefile", protein=PROTEINS)
 
