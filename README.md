@@ -10,19 +10,19 @@ The pipeline automatically retrieves sequences from multiple databases, performs
 ---
 ## Table of Contents
 
-1. [Overview](#overview)  
-2. [Key Features](#key-features)  
-3. [Installation](#installation)  
-4. [Usage](#usage)  
-5. [Pipeline Workflow](#pipeline-workflow)  
-6. [Reproducibility and Automation](#reproducibility-and-automation)  
-7. [Continuous Integration](#continuous-integration)  
-8. [Docker Execution](#docker-execution)  
-9. [Configuration](#configuration)  
-10. [Directory Structure](#directory-structure)  
+1. [Overview](#overview)
+2. [Key Features](#key-features)
+3. [Installation](#installation)
+4. [Usage](#usage)
+5. [Pipeline Workflow](#pipeline-workflow)
+6. [Reproducibility and Automation](#reproducibility-and-automation)
+7. [Continuous Integration](#continuous-integration)
+8. [Docker Image Construction](#docker-image-construction)
+9. [Configuration](#configuration)
+10. [Directory Structure](#directory-structure)
 11. [License](#license)
-12. [References](#references)  
-13. [Contact](#contact)  
+12. [References](#references)
+13. [Contact](#contact)
 
 ---
 ## Overview
@@ -30,12 +30,12 @@ The pipeline automatically retrieves sequences from multiple databases, performs
 The DPS Phylogeny Pipeline is designed to fully provide a **reproducible and automated workflow for phylogenetic analysis of Dps proteins**. 
 The pipeline performs the following steps:
 
-- Sequence retrieval from **NCBI** and **UniProt**  
-- Sequence merging and cleaning, including duplicate's removal  
+- Sequence retrieval from **NCBI** and **UniProt**
+- Sequence merging and cleaning, including duplicate's removal
 - Combination of Dps1 and Dps2 datasets
-- Redundancy reduction using **CD-HIT**  
-- Multiple sequence alignment using **MAFFT**  
-- Alignment trimming using **TrimAl**  
+- Redundancy reduction using **CD-HIT**
+- Multiple sequence alignment using **MAFFT**
+- Alignment trimming using **TrimAl**
 - Maximum-likelihood phylogenetic inference with **IQ-TREE**, including model selection and branch support
 
 All steps are executed automatically through Snakemake rules, ensuring that **no manual intervention is required**.
@@ -43,14 +43,14 @@ All steps are executed automatically through Snakemake rules, ensuring that **no
 ---
 ## Key Features
 
-- **Automated workflow:** Single-command execution of the complete pipeline  
-- **Multi-database retrieval:** Fetches sequences from NCBI and UniProt  
-- **High-quality preprocessing:** duplication, filtering, trimming  
+- **Automated workflow:** Single-command execution of the complete pipeline
+- **Multi-database retrieval:** Fetches sequences from NCBI and UniProt
+- **High-quality preprocessing:** duplication, filtering, trimming
 - **Protein dataset integration:** combines multiple Dps proteins into a unified dataset
 - **High-quality alignment:** generated with MAFFT
-- **Phylogenetic rigor:** Alignment trimming, model selection, bootstrap and aLRT support  
-- **Containerized execution:** Docker ensures identical behaviour across systems  
-- **CI validation:** Lightweight GitHub Actions workflow ensures workflow integrity on every commit  
+- **Phylogenetic rigor:** Alignment trimming, model selection, bootstrap and aLRT support
+- **Containerized execution:** Docker ensures identical behaviour across systems
+- **CI validation:** Lightweight GitHub Actions workflow ensures workflow integrity on every commit
 - **Dps1 truncation:** automatically truncates Dps1 sequences (aa 54–207) for downstream analyses
 
 ---
@@ -102,11 +102,11 @@ will be automatically downloaded and executed through Singularity.
 
 ```
 data/
-├── raw/             # Retrieved sequences
-├── cleaned/         # Filtered sequences
-├── combined/        # Merged sequences
-├── aligned/         # MAFFT alignments and trimmed alignments
-└── trees/           # Phylogenetic trees
+├── raw/ # Retrieved sequences
+├── cleaned/ # Filtered sequences
+├── combined/# Merged sequences
+├── aligned/ # MAFFT alignments and trimmed alignments
+└── trees/ # Phylogenetic trees
 ```
 
 ---
@@ -116,11 +116,11 @@ data/
 Protein sequences are retrieved from two sources:
 
 **NCBI** 
-- Retrieves using the **Biopython Entrez API**  
+- Retrieves using the **Biopython Entrez API**
 - Queries constructed using the configured protein names and taxon
 
 **UniProt:** 
-- Retrieves using the **UniProt REST API**  
+- Retrieves using the **UniProt REST API**
 - Complementary dataset to increase sequence coverage
 
 Sequences are stored in:<br>
@@ -130,8 +130,8 @@ data/raw/{protein}/
 Sequences from both databases are merged and processed using a Python script.
 
 The cleaning step currently performs:
-- Merge fasta files form NCBI and UniProt  
-- Remove duplicates and ambiguous residues  
+- Merge fasta files form NCBI and UniProt
+- Remove duplicates and ambiguous residues
 - Generate a clean FASTA file for downstream analysis
 
 The resulting dataset is stored in:<br>
@@ -146,7 +146,7 @@ Output: data/cleaned/dps1/dps1_trunc.fasta
 
 ### 3. Redundancy Reduction
 
-- **CD-HIT** collapses sequences with ≥95% identity  
+- **CD-HIT** collapses sequences with ≥95% identity
 - Reduces bias from overrepresented sequences
 
 ### 4. Multiple Sequence Alignment
@@ -214,7 +214,7 @@ The CI workflow performs:
 This ensures that changes to the repository do not break the workflow.
 
 ---
-## Docker Execution
+## Docker Image Construction
 The pipeline uses a Docker container based on:
 ```
 snakemake/snakemake:latest
@@ -253,16 +253,16 @@ retmax: 500
 ```
 
 **Parameter description**
-| Parameter      | Description                                       |
+| Parameter| Description |
 | -------------- | ------------------------------------------------- |
-| proteins       | Target proteins to retrieve                       |
-| taxon          | Taxonomic group used for sequence search          |
-| focus_species  | Species of special interest                       |
-| min_length     | Minimum allowed sequence length                   |
-| max_length     | Maximum allowed sequence length                   |
+| proteins | Target proteins to retrieve |
+| taxon| Taxonomic group used for sequence search|
+| focus_species| Species of special interest |
+| min_length | Minimum allowed sequence length |
+| max_length | Maximum allowed sequence length |
 | cdhit_identity | Sequence identity threshold for CD-HIT clustering |
-| email          | Required for NCBI Entrez API                      |
-| retmax         | Maximum number of sequences retrieved per query   |
+| email| Required for NCBI Entrez API|
+| retmax | Maximum number of sequences retrieved per query |
 
 ---
 ## Directory Structure
@@ -278,18 +278,18 @@ snakemake --dag | dot -Tpng > dag.png
 ---
 ## License
 
-This pipeline is licensed under the [MIT License](LICENSE).  
+This pipeline is licensed under the [MIT License](LICENSE).
 You are free to use, modify, and distribute it, with proper attribution to the author.
 
 ---
 ## References
 
-- **Snakemake**: Köster & Rahmann, Bioinformatics 2012  
-- **Biopython**: Cock et al., Bioinformatics 2009  
-- **MAFFT**: Katoh & Standley, Mol Biol Evol 2013  
-- **TrimAl**: Capella-Gutiérrez et al., Bioinformatics 2009  
-- **IQ-TREE**: Minh et al., Mol Biol Evol 2020  
-- **CD-HIT**: Li & Godzik, Bioinformatics 2006  
+- **Snakemake**: Köster & Rahmann, Bioinformatics 2012
+- **Biopython**: Cock et al., Bioinformatics 2009
+- **MAFFT**: Katoh & Standley, Mol Biol Evol 2013
+- **TrimAl**: Capella-Gutiérrez et al., Bioinformatics 2009
+- **IQ-TREE**: Minh et al., Mol Biol Evol 2020
+- **CD-HIT**: Li & Godzik, Bioinformatics 2006
 
 ---
 ## Contact
