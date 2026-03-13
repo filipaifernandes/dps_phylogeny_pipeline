@@ -5,8 +5,8 @@
 
 #Target protein - a list of the proteins names to be searched in NCBI Protein
 proteins:
-  - Dps1
-  - Dps2
+  - dps1
+  - dps2
 
 
 #Taxonomic scope
@@ -26,11 +26,15 @@ word_length: 5
 mafft:
   method: linsi
 
-#Alignment trimming - automated1 automatically selects trimming parameters
+#Alignment trimming - automated automatically selects trimming parameters
 trimal:
   mode: automated1
 
-
+#Truncation - in case only a part of the sequence needs to be shorter 
+truncation:
+  start: 54
+  end: 207
+  
 #Phylogenetic inference
 iqtree:
   bootstrap: 1000  #N.º of ultrafast bootstrap replicates
@@ -39,7 +43,7 @@ iqtree:
 
 
 #NCBI retrival parameters
-email: youremail@example.pt  #Email is required by NCBI Entrez policies
+email: filipaifernandes.2005@gmail.com  #Email is required by NCBI Entrez policies
 retmax: 500  #Maximum number of sequences retrieved per query
 
 #UniProt retrival parameters
