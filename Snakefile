@@ -71,22 +71,22 @@ rule cdhit:
         """
 
 ##Exclusive to this analysis (can be documented if not needed) 
-#### Create truncated Dps1 sequence (aa 54–207) ####
+#### Create truncated dps1 sequence (aa 54–207) ####
 rule truncate_dps1:
     input:
-        "data/cleaned/Dps1/nonredundant.fasta"
+        "data/cleaned/dps1/nonredundant.fasta"
     output:
-        "data/cleaned/Dps1/Dps1_trunc.fasta"
+        "data/cleaned/dps1/dps1_trunc.fasta"
     shell:
         """
-        python scripts/truncate_dps1.py {input} {output} {config[truncation][start]} {config[truncation][end]}
+        python scripts/truncate_dps1.py {input} {output} {config["truncation"]["start"]} {config["truncation"]["end"]}
         """
 
 #### Combine proteins ####
 rule combine_proteins:
     input:
         expand("data/cleaned/{protein}/nonredundant.fasta", protein=PROTEINS),
-        "data/cleaned/Dps1/Dps1_trunc.fasta"
+        "data/cleaned/dps1/dps1_trunc.fasta"
     output:
         "data/combined/all_sequences.fasta"
     shell:
