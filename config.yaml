@@ -24,16 +24,17 @@ word_length: 5
 
 #Alignment settings - L-INS-i is recommended for protein alignments, with conserved motifs and moderate divergence
 mafft:
-  method: linsi
+  method: "--localpair --maxiterate 1000"  # L-INS-I method
 
 #Alignment trimming - automated automatically selects trimming parameters
 trimal:
   mode: automated1
 
 #Truncation - in case only a part of the sequence needs to be shorter 
-truncation:
-  start: 54
-  end: 207
+truncations:
+  dps1:
+    start: 54
+    end: 207
   
 #Phylogenetic inference
 iqtree:

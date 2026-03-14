@@ -1,7 +1,7 @@
 configfile: "config.yaml"
 container: "docker://filipafernandes/dps_pipeline:005"
 PROTEINS = config["proteins"]
-
+TRUNCATIONS = config["truncations"]
 
 
 #### Final target of the workflow ####
@@ -9,7 +9,8 @@ rule all:
     input:
         expand("data/raw/{protein}/ncbi.fasta", protein=PROTEINS),
         expand("data/raw/{protein}/uniprot.fasta", protein=PROTEINS),
-        "data/cleaned/dps1/dps1_trunc.fasta",
+        expand("data/cleaned/{protein}/{protein}_trunc.fasta", 
+               protein=TRUNCATIONS.keys()),
         expand("data/cleaned/{protein}/nonredundant.fasta", protein=PROTEINS),
         "data/aligned/aligned.fasta",
         expand("data/aligned/{protein}_aligned.fasta", protein=PROTEINS),
@@ -80,14 +81,17 @@ rule cdhit:
 
 ##Exclusive to this analysis (can be documented if not needed) 
 #### Create truncated dps1 sequence (aa 54–207) ####
-rule truncate_dps1:
+rule truncate:
     input:
-        "data/cleaned/dps1/nonredundant.fasta"
+        "data/cleaned/{protein}/nonredundant.fasta"
     output:
-        "data/cleaned/dps1/dps1_trunc.fasta"
+        "data/cleaned/{protein}/{protein}_trunc.fasta"
+    params:
+        start = lambda wildcards: config["truncations"][wildcards.protein]["start"],
+        end   = lambda wildcards: config["truncations"][wildcards.protein]["end"]
     shell:
         """
-        python scripts/truncate_dps1.py {input} {output} {config[truncation][start]} {config[truncation][end]}
+        python scripts/truncate_protein.py {input} {output} {params.start} {params.end}
         """
 
 #### Combine proteins ####
@@ -113,7 +117,7 @@ rule align_combined:
     shell:
         """
         mkdir -p $(dirname {output})
-	mafft --{config[mafft][method]}
+	      mafft {config[mafft][method]} {input} > {output}
         """
 
 
