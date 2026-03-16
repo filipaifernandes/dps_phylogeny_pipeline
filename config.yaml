@@ -43,7 +43,7 @@ iqtree:
 
 
 #NCBI retrival parameters
-email: filipaifernandes.2005@gmail.com  #Email is required by NCBI Entrez policies
+email: youremail@example.com  #Email is required by NCBI Entrez policies
 retmax: 500  #Maximum number of sequences retrieved per query
 
 #UniProt retrival parameters
