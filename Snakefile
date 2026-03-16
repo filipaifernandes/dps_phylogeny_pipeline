@@ -170,7 +170,7 @@ rule iqtree_combined:
         -m MFP \
         -B {config[iqtree][bootstrap]} \
         --alrt {config[iqtree][alrt]} \
-        -T {threads} \
+        -T AUTO \
         --prefix data/trees/final \
         --redo
         """
@@ -187,7 +187,7 @@ rule iqtree_individual:
         -m MFP \
         -B {config[iqtree][bootstrap]} \
         --alrt {config[iqtree][alrt]} \
-        -T {threads} \
+        -T AUTO \
         --prefix data/trees/{wildcards.protein} \
         --redo
         """
