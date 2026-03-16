@@ -70,8 +70,13 @@ You can get the package at:
 ```bash
 https://github.com/apptainer/apptainer/releases/tag/v1.4.5
 ```
+<<<<<<< HEAD
 For Ubuntu, it's recommended getting the **apptainer_1.4.5_amd64.deb** package. <br>
 Install it:
+=======
+For ubuntu, it's recommended getting the **apptainer_1.4.5_amd64.deb** package
+Then install it:
+>>>>>>> 97b0933ad0f9a512cad7a6640c14888a85315434
 ```bash
 sudo apt install ./apptainer_1.4.5_amd64.deb
 ```
