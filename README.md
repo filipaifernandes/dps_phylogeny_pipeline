@@ -276,7 +276,7 @@ snakemake --dag | dot -Tpng > dag.png
 ## License
 
 This pipeline is licensed under the [MIT License](LICENSE).
-You are free to use, modify, and distribute it, with proper attribution to the author.
+You are free to use, modify and distribute it with proper attribution to the author.
 
 ---
 ## References
