@@ -65,12 +65,13 @@ conda install -c conda-forge -c bioconda snakemake
 ```
 
 2. Install Apptainer
+
 You can get the package at:
 ```bash
 https://github.com/apptainer/apptainer/releases/tag/v1.4.5
 ```
-Its recommended getting the **apptainer_1.4.5_amd64.deb** package
-Then install it:
+For Ubuntu, it's recommended getting the **apptainer_1.4.5_amd64.deb** package. <br>
+Install it:
 ```bash
 sudo apt install ./apptainer_1.4.5_amd64.deb
 ```
@@ -87,11 +88,7 @@ cd dps_phylogeny_pipeline
 ```bash
 snakemake --use-singularity --cores 4
 ```
-The required container image 
-```
-(docker://filipafernandes/dps_pipeline:005)
-```
-will be automatically downloaded and executed through Singularity.
+The required container image **(docker://filipafernandes/dps_pipeline:005)** will be automatically downloaded and executed through Singularity.
 
 ---
 ## Usage
