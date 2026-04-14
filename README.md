@@ -2,29 +2,38 @@
 
 **Automated and reproducible workflow for the retrieval, curation, alignment, and phylogenetic analysis of Dps proteins in Deinococcus species.**
 
-This pipeline performs a complete bioinformatics workflow to analyze Dps1 and Dps2 proteins from Deinococcus species, with a particular interest in Deinococcus radiodurans.
+This pipeline performs a complete bioinformatics workflow to analyze Dps1 and Dps2 proteins from *Deinococcus* species, with a particular interest in *Deinococcus radiodurans*.
 The workflow is made by using Snakemake and executed within a Docker container, ensuring a fully reproducible and portable computational environment.
 
 The pipeline automatically retrieves sequences from multiple databases, performs dataset preprocessing, generates a multiple sequence alignment, and reconstructs a maximum-likelihood phylogenetic tree.
 
+Two complementary phylogenetic analyses are performed:
+- A **combined dataset including full-length and truncated Dps1 sequences**
+- A **full-length-only dataset**
+
+This enables direct comparison between conserved-domain-focused and full-protein evolutionary signals.
+
 ---
+
 ## Table of Contents
 
 1. [Overview](#overview)
 2. [Key Features](#key-features)
 3. [Installation](#installation)
 4. [Usage](#usage)
-5. [Pipeline Workflow](#pipeline-workflow)
-6. [Reproducibility and Automation](#reproducibility-and-automation)
-7. [Continuous Integration](#continuous-integration)
-8. [Docker Image Construction](#docker-image-construction)
-9. [Configuration](#configuration)
-10. [Directory Structure](#directory-structure)
-11. [License](#license)
-12. [References](#references)
-13. [Contact](#contact)
+5. [Output structure](#outputstructure)
+6. [Pipeline Workflow](#pipeline-workflow)
+7. [Reproducibility and Automation](#reproducibility-and-automation)
+8. [Continuous Integration](#continuous-integration)
+9. [Docker Image Construction](#docker-image-construction)
+10. [Configuration](#configuration)
+11. [Directory Structure](#directory-structure)
+12. [License](#license)
+13. [References](#references)
+14. [Contact](#contact)
 
 ---
+
 ## Overview
 
 The DPS Phylogeny Pipeline is designed to fully provide a **reproducible and automated workflow for phylogenetic analysis of Dps proteins**. 
@@ -32,8 +41,8 @@ The pipeline performs the following steps:
 
 - Sequence retrieval from **NCBI** and **UniProt**
 - Sequence merging and cleaning, including duplicate's removal
-- Combination of Dps1 and Dps2 datasets
 - Redundancy reduction using **CD-HIT**
+- Dataset construction (full-length and truncated variants)
 - Multiple sequence alignment using **MAFFT**
 - Alignment trimming using **TrimAl**
 - Maximum-likelihood phylogenetic inference with **IQ-TREE**, including model selection and branch support
@@ -41,12 +50,13 @@ The pipeline performs the following steps:
 All steps are executed automatically through Snakemake rules, ensuring that **no manual intervention is required**.
 
 ---
+
 ## Key Features
 
 - **Automated workflow:** Single-command execution of the complete pipeline
 - **Multi-database retrieval:** Fetches sequences from NCBI and UniProt
 - **High-quality preprocessing:** duplication, filtering, trimming
-- **Protein dataset integration:** combines multiple Dps proteins into a unified dataset
+- **Dual dataset strategy:** full-length vs truncated+full comparison
 - **High-quality alignment:** generated with MAFFT
 - **Phylogenetic rigor:** Alignment trimming, model selection, bootstrap and aLRT support
 - **Containerized execution:** Docker ensures identical behaviour across systems
@@ -54,8 +64,9 @@ All steps are executed automatically through Snakemake rules, ensuring that **no
 - **Dps1 truncation:** automatically truncates Dps1 sequences (aa 54–207) for downstream analyses
 
 ---
+
 ## Installation
-The pipeline uses **Snakemake with Singularity containers** to guarantee reproducibility.
+The pipeline uses **Snakemake with Singularity/Apptainer containers**.
 
 1. Install **Snakemake**
 
@@ -66,7 +77,7 @@ conda install -c conda-forge -c bioconda snakemake
 
 2. Install Apptainer
 
-You can get the package at:
+Download from:
 ```bash
 https://github.com/apptainer/apptainer/releases/tag/v1.4.5
 ```
@@ -91,133 +102,152 @@ snakemake --use-singularity --cores 4
 The required container image **(docker://filipafernandes/dps_pipeline:005)** will be automatically downloaded and executed through Singularity.
 
 ---
+
 ## Usage
 
-- Only one command is required for complete execution.
-- The pipeline can be run multiple times.
-- Outputs are structured for clarity:
+- Single command execution
+- Fully reproducible
+- Safe to re-run (Snakemake handles dependencies)
 
+---
+## Output structure
 ```
 data/
-├── raw/ # Retrieved sequences
-├── cleaned/ # Filtered sequences
-├── combined/# Merged sequences
-├── aligned/ # MAFFT alignments and trimmed alignments
-└── trees/ # Phylogenetic trees
+├── raw/        # Retrieved sequences
+├── cleaned/    # Filtered and nonredundant sequences
+├── combined/   # Dataset combinations
+├── aligned/    # Alignments and trimmed alignments
+└── trees/      # Phylogenetic trees
 ```
 
 ---
+
 ## Pipeline Workflow
 
 ### 1. Sequence Retrieval
-Protein sequences are retrieved from two sources:
+Sequences are retrieved from:
 
 **NCBI** 
-- Retrieves using the **Biopython Entrez API**
-- Queries constructed using the configured protein names and taxon
+- Biopython Entrez API
+- Query based on protein name and taxon
 
 **UniProt:** 
-- Retrieves using the **UniProt REST API**
-- Complementary dataset to increase sequence coverage
+- REST API
+- Expands dataset coverage
 
-Sequences are stored in:<br>
+Output:<br>
 data/raw/{protein}/
 
 ### 2. Sequence Cleaning
-Sequences from both databases are merged and processed using a Python script.
 
-The cleaning step currently performs:
 - Merge fasta files form NCBI and UniProt
 - Remove duplicates and ambiguous residues
-- Generate a clean FASTA file for downstream analysis
+- Generate clean datasets
 
-The resulting dataset is stored in:<br>
+Output:<br>
 data/cleaned/{protein}/cleaned.fasta
-
-Cleaned sequences for each protein are combined into a single dataset:<br>
-data/combined/all_sequences.fasta<br>
-This allows phylogenetic analysis across multiple Dps homologs.
-
-After merging and cleaning, the Dps1 sequences are **truncated to amino acids 54–207** before being combined with other protein datasets. This ensures uniformity and focuses the phylogenetic analysis on the conserved region of Dps1.<br>
-Output: data/cleaned/dps1/dps1_trunc.fasta
 
 ### 3. Redundancy Reduction
 
-- **CD-HIT** collapses sequences with ≥95% identity
-- Reduces bias from overrepresented sequences
+- Performed using CD-HIT
+- Collapses sequences with ≥95% identity
+- Reduces redundancy bias
 
-### 4. Multiple Sequence Alignment
-Sequences are aligned using MAFFT.
+Output:<br>
+data/cleaned/{protein}/nonredundant.fasta
 
-The workflow uses the MAFFT automatic mode:
+### 4. Dps1 Truncation
+
+- Extracts conserved region (aa 54–207)
+- Applied only to Dps1
+
+Output:<br>
+data/cleaned/dps1/dps1_trunc.fasta
+
+### 5. Dataset Construction
+
+Two datasets are generated:
+
+**Truncated + Full dataset**
+- All full-length sequences
+- Includes truncated Dps1
+
+Output:<br>
+data/combined/all_sequences_trunc.fasta
+
+**Full-length dataset**
+
+- Only full-length sequences
+- data/combined/all_sequences_full.fasta
+
+Output:<br>
+data/combined/all_sequences_full.fasta
+
+### 6. Multiple Sequence Alignment
+
+Performed using MAFFT:
 ```
 mafft --auto
 ```
+Outputs:<br>
+data/aligned/aligned_trunc.fasta
+data/aligned/aligned_full.fasta
 
-This allows MAFFT to automatically select the most appropriate alignment algorithm based on dataset characteristics.
+### 7. Alignment Trimming
 
-The resulting alignment is stored in:<br>
-data/aligned/aligned.fasta
+Performed using TrimAl:
 
-### 5. Alignment Trimming
-The alignment is processed using TrimAl to remove poorly aligned regions.
-
-The pipeline uses:
 ```
 trimal -automated1
 ```
 
-This mode automatically determines trimming thresholds to improve alignment quality.
+Outputs:
+data/aligned/aligned_trunc_trimmed.fasta
+data/aligned/aligned_full_trimmed.fasta
 
-Output: <br>
-data/aligned/aligned_trimmed.fasta
+### 8. Phylogenetic Inference
 
-### 6. Phylogenetic Inference
-Phylogenetic reconstruction is performed using IQ-TREE under a maximum-likelihood framework.
+Performed using IQ-TREE:
 
-The pipeline performs:
-- ModelFinder Plus (MFP) for substitution model selection
-- Ultrafast bootstrap analysis
-- SH-aLRT branch support estimation
-
-Example command used by the workflow:
 ```
 iqtree2 -s alignment.fasta -m MFP -bb 1000 -alrt 1000
 ```
 
-The resulting tree is saved as: <br>
-data/trees/final.treefile
+Outputs:
+**Truncated + Full tree**
+data/trees/final_trunc.treefile
+
+**Full-length tree**
+data/trees/final_full.treefile
 
 ---
 ## Reproducibility and Automation
 Reproducibility is ensured through:
 
 - Snakemake workflow management
-- Docker containerized environment
-- Clearly defined configuration parameters
-- Automated dependency resolution
-
-Snakemake also constructs a Directed Acyclic Graph (DAG) of the workflow to guarantee correct execution order.
+- Docker containerized execution
+- Explicit configuration via `config.yaml`
+- DAG-based execution ensures correct order
 
 ---
+
 ## Continuous Integration
-The repository includes a GitHub Actions workflow that automatically validates the pipeline.
+GitHub Actions workflow performs:
 
-The CI workflow performs:
-- Snakemake dry-run execution
-- Validation of the Snakefile
-- Verification of rule dependencies and DAG structure
-
-This ensures that changes to the repository do not break the workflow.
+- Snakemake dry-run
+- DAG validation
+- Rule consistency checks
 
 ---
+
 ## Docker Image Construction
-The pipeline uses a Docker container based on:
+Base image:
+
 ```
 snakemake/snakemake:latest
 ```
 
-Additional bioinformatics tools are installed in the image:
+Installed tools:
 - Biopython
 - Requests
 - MAFFT
@@ -225,9 +255,8 @@ Additional bioinformatics tools are installed in the image:
 - TrimAl
 - IQ-TREE
 
-This ensures the pipeline runs identically on Linux, macOS, or Windows systems.
-
 ---
+
 ## Configuration
 Pipeline behaviour is controlled through the `config.yaml` file.
 
@@ -249,36 +278,40 @@ email: youremail@example.pt
 retmax: 500
 ```
 
-**Parameter description**
-| Parameter| Description |
-| -------------- | ------------------------------------------------- |
-| proteins | Target proteins to retrieve |
-| taxon| Taxonomic group used for sequence search|
-| focus_species| Species of special interest |
-| min_length | Minimum allowed sequence length |
-| max_length | Maximum allowed sequence length |
-| cdhit_identity | Sequence identity threshold for CD-HIT clustering |
-| email| Required for NCBI Entrez API|
-| retmax | Maximum number of sequences retrieved per query |
+**Parameters**
+| Parameter      | Description               |
+| -------------- | ------------------------- |
+| proteins       | Target proteins           |
+| taxon          | Taxonomic group           |
+| focus_species  | Species of interest       |
+| min_length     | Minimum sequence length   |
+| max_length     | Maximum sequence length   |
+| cdhit_identity | CD-HIT identity threshold |
+| email          | Required for NCBI API     |
+| retmax         | Max sequences retrieved   |
 
 ---
+
 ## Directory Structure
 The workflow structure generated by Snakemake is shown below:
 
 ![Pipeline DAG](dag.png)
 
-Generating the image:
+Generate DAG:
+
 ```
 snakemake --dag | dot -Tpng > dag.png
 ```
 
 ---
+
 ## License
 
 This pipeline is licensed under the [MIT License](LICENSE).
 You are free to use, modify and distribute it with proper attribution to the author.
 
 ---
+
 ## References
 
 - **Snakemake**: Köster & Rahmann, Bioinformatics 2012
@@ -289,10 +322,10 @@ You are free to use, modify and distribute it with proper attribution to the aut
 - **CD-HIT**: Li & Godzik, Bioinformatics 2006
 
 ---
+
 ## Contact
 
 Filipa Fernandes
-
 Bioinformatics Student
 
 For questions, troubleshooting or contributions regarding the pipeline:
