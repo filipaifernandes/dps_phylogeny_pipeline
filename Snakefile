@@ -1,10 +1,10 @@
 configfile: "config.yaml"
 container: "docker://filipafernandes/dps_pipeline:005"
+
 PROTEINS = config["proteins"]
 TRUNCATIONS = config["truncations"]
 
 
-#### Final target of the workflow ####
 rule all:
     input:
         expand("data/raw/{protein}/ncbi.fasta", protein=PROTEINS),
@@ -12,15 +12,18 @@ rule all:
         expand("data/cleaned/{protein}/{protein}_trunc.fasta", 
                protein=TRUNCATIONS.keys()),
         expand("data/cleaned/{protein}/nonredundant.fasta", protein=PROTEINS),
-        "data/aligned/aligned.fasta",
+
+        # individual alignments
         expand("data/aligned/{protein}_aligned.fasta", protein=PROTEINS),
-        "data/aligned/aligned_trimmed.fasta",
         expand("data/aligned/{protein}_aligned_trimmed.fasta", protein=PROTEINS),
-        "data/trees/final.treefile",
-        expand("data/trees/{protein}.treefile", protein=PROTEINS)
+        expand("data/trees/{protein}.treefile", protein=PROTEINS),
+
+        # NEW final outputs
+        "data/trees/final_trunc.treefile",
+        "data/trees/final_full.treefile"
 
 
-#### Fetch protein sequences from NCBI ####
+#Fetch NCBI
 rule fetch_ncbi:
     output:
         "data/raw/{protein}/ncbi.fasta"
@@ -36,7 +39,7 @@ rule fetch_ncbi:
         """
 
 
-#### Fetch protein sequences from UniProt ####
+#Fetch UniProt
 rule fetch_uniprot:
     output:
         "data/raw/{protein}/uniprot.fasta"
@@ -52,7 +55,7 @@ rule fetch_uniprot:
         """
 
 
-#### Merge and clean sequences ####
+#Merge + clean
 rule merge_clean:
     input:
         "data/raw/{protein}/ncbi.fasta",
@@ -66,7 +69,7 @@ rule merge_clean:
         """
 
 
-#### Reduce redundancy - using CD-HIT ####
+#CD-HIT
 rule cdhit:
     input:
         "data/cleaned/{protein}/cleaned.fasta"
@@ -79,47 +82,137 @@ rule cdhit:
         cd-hit -i {input} -o {output} -c {config[cdhit_identity]} -n {config[word_length]}
         """
 
-##Exclusive to this analysis (can be documented if not needed) 
-#### Create truncated dps1 sequence (aa 54–207) ####
+
+#Truncation
 rule truncate:
     input:
         "data/cleaned/{protein}/nonredundant.fasta"
     output:
         "data/cleaned/{protein}/{protein}_trunc.fasta"
     params:
-        start = lambda wildcards: config["truncations"][wildcards.protein]["start"],
-        end   = lambda wildcards: config["truncations"][wildcards.protein]["end"]
+        start = lambda wc: config["truncations"][wc.protein]["start"],
+        end   = lambda wc: config["truncations"][wc.protein]["end"]
     shell:
         """
         python scripts/truncate_protein.py {input} {output} {params.start} {params.end}
         """
 
-#### Combine proteins ####
-rule combine_proteins:
+
+#Combine: trunc + full
+rule combine_trunc_full:
     input:
         expand("data/cleaned/{protein}/nonredundant.fasta", protein=PROTEINS),
         "data/cleaned/dps1/dps1_trunc.fasta"
     output:
-        "data/combined/all_sequences.fasta"
+        "data/combined/all_sequences_trunc.fasta"
     shell:
         """
         mkdir -p data/combined
         cat {input} > {output}
         """
 
-#### Multiple sequence alignment - using MAFFT ####
-rule align_combined:
+
+#Combine: full only
+rule combine_full_only:
     input:
-        "data/combined/all_sequences.fasta"
+        expand("data/cleaned/{protein}/nonredundant.fasta", protein=PROTEINS)
     output:
-        "data/aligned/aligned.fasta"
+        "data/combined/all_sequences_full.fasta"
+    shell:
+        """
+        mkdir -p data/combined
+        cat {input} > {output}
+        """
+
+
+#Alignment
+rule align_trunc_full:
+    input:
+        "data/combined/all_sequences_trunc.fasta"
+    output:
+        "data/aligned/aligned_trunc.fasta"
     threads: 8
     shell:
         """
         mkdir -p $(dirname {output})
-	      mafft {config[mafft][method]} {input} > {output}
+        mafft {config[mafft][method]} {input} > {output}
         """
 
+
+rule align_full:
+    input:
+        "data/combined/all_sequences_full.fasta"
+    output:
+        "data/aligned/aligned_full.fasta"
+    threads: 8
+    shell:
+        """
+        mkdir -p $(dirname {output})
+        mafft {config[mafft][method]} {input} > {output}
+        """
+
+
+#Trimming
+rule trim_trunc:
+    input:
+        "data/aligned/aligned_trunc.fasta"
+    output:
+        "data/aligned/aligned_trunc_trimmed.fasta"
+    shell:
+        """
+        trimal -in {input} -out {output} -automated1
+        """
+
+
+rule trim_full:
+    input:
+        "data/aligned/aligned_full.fasta"
+    output:
+        "data/aligned/aligned_full_trimmed.fasta"
+    shell:
+        """
+        trimal -in {input} -out {output} -automated1
+        """
+
+
+#Trees
+rule iqtree_trunc:
+    input:
+        "data/aligned/aligned_trunc_trimmed.fasta"
+    output:
+        "data/trees/final_trunc.treefile"
+    threads: 4
+    shell:
+        """
+        iqtree -s {input} \
+        -m MFP \
+        -B {config[iqtree][bootstrap]} \
+        --alrt {config[iqtree][alrt]} \
+        -T AUTO \
+        --prefix data/trees/final_trunc \
+        --redo
+        """
+
+
+rule iqtree_full:
+    input:
+        "data/aligned/aligned_full_trimmed.fasta"
+    output:
+        "data/trees/final_full.treefile"
+    threads: 4
+    shell:
+        """
+        iqtree -s {input} \
+        -m MFP \
+        -B {config[iqtree][bootstrap]} \
+        --alrt {config[iqtree][alrt]} \
+        -T AUTO \
+        --prefix data/trees/final_full \
+        --redo
+        """
+
+
+#Individual trees
 
 rule align_individual:
     input:
@@ -134,18 +227,6 @@ rule align_individual:
         """
 
 
-#### Alignment trimming - using TrimAl ####
-rule trim_combined:
-    input:
-        "data/aligned/aligned.fasta"
-    output:
-        "data/aligned/aligned_trimmed.fasta"
-    shell:
-        """
-        trimal -in {input} -out {output} -automated1
-        """
-
-
 rule trim_individual:
     input:
         "data/aligned/{protein}_aligned.fasta"
@@ -156,24 +237,6 @@ rule trim_individual:
         trimal -in {input} -out {output} -automated1
         """
 
-
-#### Phylogenetic inference - using IQ-TREE ####
-rule iqtree_combined:
-    input:
-        "data/aligned/aligned_trimmed.fasta"
-    output:
-        "data/trees/final.treefile"
-    threads: 4
-    shell:
-        """
-        iqtree -s {input} \
-        -m MFP \
-        -B {config[iqtree][bootstrap]} \
-        --alrt {config[iqtree][alrt]} \
-        -T AUTO \
-        --prefix data/trees/final \
-        --redo
-        """
 
 rule iqtree_individual:
     input:
