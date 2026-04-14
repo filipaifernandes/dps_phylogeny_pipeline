@@ -9,19 +9,13 @@ rule all:
     input:
         expand("data/raw/{protein}/ncbi.fasta", protein=PROTEINS),
         expand("data/raw/{protein}/uniprot.fasta", protein=PROTEINS),
-        expand("data/cleaned/{protein}/{protein}_trunc.fasta", 
-               protein=TRUNCATIONS.keys()),
+        expand("data/cleaned/{protein}/{protein}_trunc.fasta", protein=TRUNCATIONS.keys()),
         expand("data/cleaned/{protein}/nonredundant.fasta", protein=PROTEINS),
-
-        # individual alignments
         expand("data/aligned/{protein}_aligned.fasta", protein=PROTEINS),
         expand("data/aligned/{protein}_aligned_trimmed.fasta", protein=PROTEINS),
         expand("data/trees/{protein}.treefile", protein=PROTEINS),
-
-        # NEW final outputs
         "data/trees/final_trunc.treefile",
         "data/trees/final_full.treefile"
-
 
 #Fetch NCBI
 rule fetch_ncbi:
@@ -38,7 +32,6 @@ rule fetch_ncbi:
         {output}
         """
 
-
 #Fetch UniProt
 rule fetch_uniprot:
     output:
@@ -54,8 +47,7 @@ rule fetch_uniprot:
         {output}
         """
 
-
-#Merge + clean
+#Merge and clean
 rule merge_clean:
     input:
         "data/raw/{protein}/ncbi.fasta",
@@ -67,7 +59,6 @@ rule merge_clean:
         mkdir -p $(dirname {output})
         python scripts/merge_clean_fasta.py {input[0]} {input[1]} {output}
         """
-
 
 #CD-HIT
 rule cdhit:
@@ -81,7 +72,6 @@ rule cdhit:
         mkdir -p $(dirname {output})
         cd-hit -i {input} -o {output} -c {config[cdhit_identity]} -n {config[word_length]}
         """
-
 
 #Truncation
 rule truncate:
@@ -97,7 +87,6 @@ rule truncate:
         python scripts/truncate_protein.py {input} {output} {params.start} {params.end}
         """
 
-
 #Combine: trunc + full
 rule combine_trunc_full:
     input:
@@ -111,7 +100,6 @@ rule combine_trunc_full:
         cat {input} > {output}
         """
 
-
 #Combine: full only
 rule combine_full_only:
     input:
@@ -123,7 +111,6 @@ rule combine_full_only:
         mkdir -p data/combined
         cat {input} > {output}
         """
-
 
 #Alignment
 rule align_trunc_full:
@@ -138,7 +125,6 @@ rule align_trunc_full:
         mafft {config[mafft][method]} {input} > {output}
         """
 
-
 rule align_full:
     input:
         "data/combined/all_sequences_full.fasta"
@@ -151,7 +137,6 @@ rule align_full:
         mafft {config[mafft][method]} {input} > {output}
         """
 
-
 #Trimming
 rule trim_trunc:
     input:
@@ -163,7 +148,6 @@ rule trim_trunc:
         trimal -in {input} -out {output} -automated1
         """
 
-
 rule trim_full:
     input:
         "data/aligned/aligned_full.fasta"
@@ -173,7 +157,6 @@ rule trim_full:
         """
         trimal -in {input} -out {output} -automated1
         """
-
 
 #Trees
 rule iqtree_trunc:
@@ -193,7 +176,6 @@ rule iqtree_trunc:
         --redo
         """
 
-
 rule iqtree_full:
     input:
         "data/aligned/aligned_full_trimmed.fasta"
@@ -211,7 +193,6 @@ rule iqtree_full:
         --redo
         """
 
-
 #Individual trees
 
 rule align_individual:
@@ -226,7 +207,6 @@ rule align_individual:
         mafft --auto --thread {threads} {input} > {output}
         """
 
-
 rule trim_individual:
     input:
         "data/aligned/{protein}_aligned.fasta"
@@ -236,7 +216,6 @@ rule trim_individual:
         """
         trimal -in {input} -out {output} -automated1
         """
-
 
 rule iqtree_individual:
     input:
