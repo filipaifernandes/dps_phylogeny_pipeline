@@ -119,7 +119,7 @@ data/
 
 ## DAG
 
-![Pipeline DAG](dag.png)
+![Pipeline DAG]
 
 Generate your own:
 ```bash
