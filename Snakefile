@@ -16,8 +16,8 @@ rule all:
         expand("data/trees/{protein}.treefile", protein=PROTEINS),
         "data/trees/final_trunc.treefile",
         "data/trees/final_full.treefile",
-        "results/heatmaps/sequence_identity.csv",
-        "results/heatmaps/sequence_identity.png"
+        "data/heatmap/sequence_identity.csv",
+        "data/heatmap/sequence_identity.png"
 
 #Fetch NCBI
 rule fetch_ncbi:
@@ -238,10 +238,10 @@ rule iqtree_individual:
 
 rule sequence_heatmap:
     input:
-        "results/alignment/aligned.fasta"
+        "data/aligned/aligned_full.fasta"
     output:
-        "results/heatmaps/sequence_identity.csv",
-        "results/heatmaps/sequence_identity.png"
+        "data/heatmap/sequence_identity.csv",
+        "data/heatmap/sequence_identity.png"
     shell:
         """
         python scripts/sequence_heatmap.py {input} {output[0]} {output[1]}
