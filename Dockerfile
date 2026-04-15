@@ -8,6 +8,9 @@ RUN conda install -y -c conda-forge -c bioconda \
     trimal \
     iqtree \
     seqkit \
+    pandas \
+    matplotlib \
+    seaborn \
     && conda clean -a -y
 
 WORKDIR /pipeline
