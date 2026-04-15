@@ -4,7 +4,6 @@
 
 Built with Snakemake and executed inside a Docker container — no manual steps, fully portable.
 
-
 ---
 
 ## Overview
