@@ -6,6 +6,19 @@ Built with Snakemake and executed inside a Docker container — no manual steps,
 
 ---
 
+1. [Overview](#overview)
+2. [Features](#features)
+3. [Installation](#installation)
+4. [Configuration](#configuration)
+5. [Pipeline Steps](#pipeline-steps)
+6. [Output Structure](#output-structure)
+7. [DAG](#dag)
+8. [Reproducibility](#reproducibility)
+9. [References](#references)
+10. [Contact](#contact)
+
+---
+
 ## Overview
 
 This pipeline analyzes **Dps1** and **Dps2** proteins from *Deinococcus* species, with a special focus on *Deinococcus radiodurans*. It covers everything from sequence retrieval to phylogenetic tree inference and sequence identity heatmap generation.
