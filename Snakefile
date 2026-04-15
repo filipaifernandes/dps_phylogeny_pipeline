@@ -1,5 +1,5 @@
 configfile: "config.yaml"
-container: "docker://filipafernandes/dps_pipeline:005"
+container: "docker://filipafernandes/dps_pipeline:006"
 
 PROTEINS = config["proteins"]
 TRUNCATIONS = config["truncations"]
@@ -15,7 +15,9 @@ rule all:
         expand("data/aligned/{protein}_aligned_trimmed.fasta", protein=PROTEINS),
         expand("data/trees/{protein}.treefile", protein=PROTEINS),
         "data/trees/final_trunc.treefile",
-        "data/trees/final_full.treefile"
+        "data/trees/final_full.treefile",
+        "results/heatmaps/sequence_identity.csv",
+        "results/heatmaps/sequence_identity.png"
 
 #Fetch NCBI
 rule fetch_ncbi:
@@ -232,4 +234,15 @@ rule iqtree_individual:
         -T AUTO \
         --prefix data/trees/{wildcards.protein} \
         --redo
+        """
+
+rule sequence_heatmap:
+    input:
+        "results/alignment/aligned.fasta"
+    output:
+        "results/heatmaps/sequence_identity.csv",
+        "results/heatmaps/sequence_identity.png"
+    shell:
+        """
+        python scripts/sequence_heatmap.py {input} {output[0]} {output[1]}
         """
