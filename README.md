@@ -1,4 +1,4 @@
-# # DPS Phylogeny Pipeline
+# DPS Phylogeny Pipeline
 
 **Automated and reproducible workflow for the retrieval, curation, alignment, phylogenetic analysis, and sequence identity visualization of Dps proteins in *Deinococcus* species.**
 
